@@ -69,11 +69,19 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PAT }}
         run: |
+          set -x
+          echo "Running semantic-release version..."
           if semantic-release version; then
+            echo "Version bump succeeded"
+            git log --oneline -5
+            git tag -l
+            git remote -v
             git push origin main --tags
             echo "tag=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
           else
-            echo "No version bump needed"
+            echo "No version bump needed or failed"
+            git log --oneline -5
+            git tag -l
             echo "tag=" >> "$GITHUB_OUTPUT"
           fi
 
