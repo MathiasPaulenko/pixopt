@@ -83,7 +83,6 @@ nav:
   - Home: index.md
   - Getting Started:
     - Installation: installation.md
-    - Quick Start: index.md#quick-start
   - Usage:
     - CLI Reference: cli.md
     - Library Reference: library.md
