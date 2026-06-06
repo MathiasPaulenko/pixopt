@@ -1,7 +1,7 @@
-"""ImgOptimizer - A powerful image optimizer for web and storage."""
+"""optimg - Fast Python image optimizer. Resize, compress, convert, and generate responsive assets."""
 
-from imgoptimizer.models import OptimizationResult
-from imgoptimizer.optimizer import (
+from optimg.models import OptimizationResult
+from optimg.optimizer import (
     change_extension,
     convert_to_favicon,
     optimize_directory,

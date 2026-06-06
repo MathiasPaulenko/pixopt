@@ -1,17 +1,17 @@
 # Installation
 
-ImgOptimizer requires Python 3.9 or newer.
+optimg requires Python 3.9 or newer.
 
 ## From PyPI
 
 ```bash
-pip install imgoptimizer
+pip install optimg
 ```
 
 ## With HEIC/HEIF support
 
 ```bash
-pip install imgoptimizer[pillow-heif]
+pip install optimg[pillow-heif]
 ```
 
 Or install the extra directly:
@@ -23,13 +23,13 @@ pip install pillow-heif
 ## From source
 
 ```bash
-git clone https://github.com/yourusername/imgoptimizer.git
-cd imgoptimizer
+git clone https://github.com/yourusername/optimg.git
+cd optimg
 pip install -e ".[dev]"
 ```
 
 ## Verify installation
 
 ```bash
-imgoptimizer --help
+optimg --help
 ```

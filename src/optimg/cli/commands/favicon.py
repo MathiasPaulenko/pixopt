@@ -5,9 +5,9 @@ from typing import Annotated
 
 import typer
 
-from imgoptimizer.cli.app import app
-from imgoptimizer.cli.output import _print_result
-from imgoptimizer.optimizer import convert_to_favicon
+from optimg.cli.app import app
+from optimg.cli.output import _print_result
+from optimg.optimizer import convert_to_favicon
 
 
 @app.command()

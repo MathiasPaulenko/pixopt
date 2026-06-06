@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 
-from imgoptimizer.constants import DEFAULT_EXTENSIONS
+from optimg.constants import DEFAULT_EXTENSIONS
 
 
 def discover_images(

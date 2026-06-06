@@ -6,8 +6,8 @@ from pathlib import Path
 
 from PIL import Image
 
-from imgoptimizer.constants import EXT_TO_FORMAT, FORMAT_MAP, FORMAT_TO_EXT
-from imgoptimizer.models import OutputFormat
+from optimg.constants import EXT_TO_FORMAT, FORMAT_MAP, FORMAT_TO_EXT
+from optimg.models import OutputFormat
 
 
 def resolve_output_format(

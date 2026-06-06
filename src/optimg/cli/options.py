@@ -6,7 +6,7 @@ from typing import Annotated
 
 import typer
 
-from imgoptimizer.models import OutputFormat
+from optimg.models import OutputFormat
 
 FormatChoices = Annotated[
     OutputFormat,

@@ -1,4 +1,4 @@
-# ImgOptimizer
+# optimg
 
 A powerful, easy-to-use Python library and CLI tool for optimizing images for web and storage.
 
@@ -26,7 +26,7 @@ A powerful, easy-to-use Python library and CLI tool for optimizing images for we
 ## Installation
 
 ```bash
-pip install imgoptimizer
+pip install optimg
 ```
 
 ## CLI Usage
@@ -34,109 +34,109 @@ pip install imgoptimizer
 ### Optimize a single image
 
 ```bash
-imgoptimizer optimize photo.jpg photo_optimized.jpg --quality 80 --width 1200
+optimg optimize photo.jpg photo_optimized.jpg --quality 80 --width 1200
 ```
 
 ### Optimize all images in a directory
 
 ```bash
-imgoptimizer optimize ./images ./optimized --recursive --quality 85 --format webp
+optimg optimize ./images ./optimized --recursive --quality 85 --format webp
 ```
 
 ### Batch optimize specific files
 
 ```bash
-imgoptimizer batch photo1.jpg photo2.png photo3.bmp -o ./optimized --width 800
+optimg batch photo1.jpg photo2.png photo3.bmp -o ./optimized --width 800
 ```
 
 ### Convert image format / extension
 
 ```bash
-imgoptimizer convert photo.png photo.webp -f webp
-imgoptimizer convert ./images ./webp_images -r -f webp
+optimg convert photo.png photo.webp -f webp
+optimg convert ./images ./webp_images -r -f webp
 ```
 
 ### Generate favicon (.ico)
 
 ```bash
-imgoptimizer favicon logo.png favicon.ico
-imgoptimizer favicon logo.png --size 16 --size 32 --size 48
+optimg favicon logo.png favicon.ico
+optimg favicon logo.png --size 16 --size 32 --size 48
 ```
 
 ### Convert animated GIF to animated WEBP
 
 ```bash
-imgoptimizer convert animation.gif animation.webp -f webp
+optimg convert animation.gif animation.webp -f webp
 ```
 
 ### Optimize SVG
 
 ```bash
-imgoptimizer convert icon.svg icon.min.svg
+optimg convert icon.svg icon.min.svg
 ```
 
 ### Convert HEIC (iPhone) to JPEG
 
 ```bash
-imgoptimizer convert photo.heic photo.jpg
+optimg convert photo.heic photo.jpg
 ```
 
 ### Lossless PNG/WEBP for UI assets
 
 ```bash
-imgoptimizer convert icon.png icon.webp --lossless -f webp
+optimg convert icon.png icon.webp --lossless -f webp
 ```
 
 ### Adaptive quality (target file size)
 
 ```bash
-imgoptimizer optimize photo.jpg --target-size 50
+optimg optimize photo.jpg --target-size 50
 ```
 
 ### Generate visual comparison HTML
 
 ```bash
-imgoptimizer compare photo.jpg comparison.html --open
+optimg compare photo.jpg comparison.html --open
 ```
 
 ### Generate responsive srcset images
 
 ```bash
-imgoptimizer srcset hero.jpg --sizes 320,640,1024,1920 --output-dir ./responsive/
-imgoptimizer srcset hero.jpg --sizes 320,640,1024,1920 -f webp --html snippet.html
+optimg srcset hero.jpg --sizes 320,640,1024,1920 --output-dir ./responsive/
+optimg srcset hero.jpg --sizes 320,640,1024,1920 -f webp --html snippet.html
 ```
 
 ### Generate lazy-loading placeholders
 
 ```bash
-imgoptimizer placeholder photo.jpg --type color
-imgoptimizer placeholder photo.jpg --type lqip
-imgoptimizer placeholder photo.jpg --type blurhash -o blurhash.txt
+optimg placeholder photo.jpg --type color
+optimg placeholder photo.jpg --type lqip
+optimg placeholder photo.jpg --type blurhash -o blurhash.txt
 ```
 
 ### Smart format detection
 
 ```bash
-imgoptimizer optimize photo.jpg --smart-format
-imgoptimizer convert graphic.png output --smart-format
+optimg optimize photo.jpg --smart-format
+optimg convert graphic.png output --smart-format
 ```
 
 ### Backup originals before processing
 
 ```bash
-imgoptimizer optimize ./images --backup ./originals --recursive
+optimg optimize ./images --backup ./originals --recursive
 ```
 
 ### Skip already-optimized files
 
 ```bash
-imgoptimizer optimize ./images --min-size 10 --recursive
+optimg optimize ./images --min-size 10 --recursive
 ```
 
 ### Inspect image info without optimizing
 
 ```bash
-imgoptimizer info photo.jpg
+optimg info photo.jpg
 ```
 
 ### Available options
@@ -160,8 +160,8 @@ imgoptimizer info photo.jpg
 ## Library Usage
 
 ```python
-from imgoptimizer import optimize_image
-from imgoptimizer.models import OutputFormat
+from optimg import optimize_image
+from optimg.models import OutputFormat
 
 # Optimize a single image
 result = optimize_image(
@@ -179,7 +179,7 @@ print(f"Saved {result.savings_percent:.1f}% ({result.human_savings})")
 ### Placeholders for lazy loading
 
 ```python
-from imgoptimizer.placeholder import generate_placeholder
+from optimg.placeholder import generate_placeholder
 
 color = generate_placeholder("photo.jpg", placeholder_type="color")
 lqip = generate_placeholder("photo.jpg", placeholder_type="lqip")
@@ -189,7 +189,7 @@ blurhash = generate_placeholder("photo.jpg", placeholder_type="blurhash")
 ### Smart format detection
 
 ```python
-from imgoptimizer.smart_format import detect_optimal_format
+from optimg.smart_format import detect_optimal_format
 
 fmt = detect_optimal_format("photo.jpg")
 # Returns OutputFormat.WEBP for photos, PNG for graphics, WEBP for transparent images
@@ -198,7 +198,7 @@ fmt = detect_optimal_format("photo.jpg")
 ### Responsive srcset generation
 
 ```python
-from imgoptimizer.srcset_generator import generate_srcset_images
+from optimg.srcset_generator import generate_srcset_images
 
 variants = generate_srcset_images(
     "hero.jpg",
@@ -214,7 +214,7 @@ for v in variants:
 ### Batch / directory processing
 
 ```python
-from imgoptimizer import optimize_directory
+from optimg import optimize_directory
 
 results = optimize_directory(
     "./images",
@@ -235,8 +235,8 @@ for r in results:
 Install in development mode:
 
 ```bash
-git clone https://github.com/yourusername/imgoptimizer.git
-cd imgoptimizer
+git clone https://github.com/yourusername/optimg.git
+cd optimg
 pip install -e ".[dev]"
 ```
 

@@ -7,8 +7,8 @@ from typing import Annotated
 
 import typer
 
-from imgoptimizer.cli.app import app, console
-from imgoptimizer.placeholder import generate_placeholder
+from optimg.cli.app import app, console
+from optimg.placeholder import generate_placeholder
 
 
 @app.command()

@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "imgoptimizer"
+name = "optimg"
 version = "0.1.0"
-description = "A powerful image optimizer for web and storage. Resize, compress, and strip metadata."
+description = "Fast Python image optimizer. Resize, compress, convert, and generate responsive assets."
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"
@@ -47,15 +47,15 @@ docs = [
 ]
 
 [project.scripts]
-imgoptimizer = "imgoptimizer.cli:app"
+optimg = "optimg.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/imgoptimizer"
-Repository = "https://github.com/yourusername/imgoptimizer"
-Issues = "https://github.com/yourusername/imgoptimizer/issues"
+Homepage = "https://github.com/yourusername/optimg"
+Repository = "https://github.com/yourusername/optimg"
+Issues = "https://github.com/yourusername/optimg/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/imgoptimizer"]
+packages = ["src/optimg"]
 
 [tool.ruff]
 target-version = "py39"

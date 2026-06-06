@@ -7,8 +7,8 @@ import typer
 from PIL import Image
 from PIL.ExifTags import Base
 
-from imgoptimizer.cli.app import app, console
-from imgoptimizer.cli.output import _human_size
+from optimg.cli.app import app, console
+from optimg.cli.output import _human_size
 
 
 @app.command()

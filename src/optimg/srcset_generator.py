@@ -7,8 +7,8 @@ from pathlib import Path
 
 from PIL import Image
 
-from imgoptimizer.models import OutputFormat
-from imgoptimizer.optimizer import optimize_image
+from optimg.models import OutputFormat
+from optimg.optimizer import optimize_image
 
 
 @dataclass(frozen=True)

@@ -6,9 +6,9 @@ from typing import Annotated
 import typer
 from PIL import Image
 
-from imgoptimizer.adaptive_quality import find_quality_for_target_size
-from imgoptimizer.cli.app import app, console
-from imgoptimizer.cli.options import (
+from optimg.adaptive_quality import find_quality_for_target_size
+from optimg.cli.app import app, console
+from optimg.cli.options import (
     BackupOption,
     FormatChoices,
     HeightOption,
@@ -23,10 +23,10 @@ from imgoptimizer.cli.options import (
     TargetSizeOption,
     WidthOption,
 )
-from imgoptimizer.cli.output import _print_result, _print_summary
-from imgoptimizer.models import OutputFormat
-from imgoptimizer.optimizer import optimize_directory, optimize_image
-from imgoptimizer.smart_format import detect_optimal_format
+from optimg.cli.output import _print_result, _print_summary
+from optimg.models import OutputFormat
+from optimg.optimizer import optimize_directory, optimize_image
+from optimg.smart_format import detect_optimal_format
 
 
 def _resolve_quality(
@@ -45,7 +45,7 @@ def _resolve_quality(
         return quality
     with Image.open(source) as img:
         img.load()
-        from imgoptimizer.format_resolver import resolve_output_format
+        from optimg.format_resolver import resolve_output_format
         _, pillow_fmt = resolve_output_format(img, source, fmt)
         if pillow_fmt not in ("JPEG", "WEBP"):
             return quality

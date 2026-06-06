@@ -5,8 +5,8 @@ from typing import Annotated
 
 import typer
 
-from imgoptimizer.cli.app import app, console
-from imgoptimizer.cli.options import (
+from optimg.cli.app import app, console
+from optimg.cli.options import (
     BackupOption,
     FormatChoices,
     HeightOption,
@@ -20,10 +20,10 @@ from imgoptimizer.cli.options import (
     StripOption,
     WidthOption,
 )
-from imgoptimizer.cli.output import _print_result, _print_summary
-from imgoptimizer.models import OutputFormat
-from imgoptimizer.optimizer import change_extension, optimize_directory
-from imgoptimizer.smart_format import detect_optimal_format
+from optimg.cli.output import _print_result, _print_summary
+from optimg.models import OutputFormat
+from optimg.optimizer import change_extension, optimize_directory
+from optimg.smart_format import detect_optimal_format
 
 
 @app.command()

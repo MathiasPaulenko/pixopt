@@ -4,7 +4,7 @@ hide:
   - toc
 ---
 
-# ImgOptimizer
+# optimg
 
 A powerful, easy-to-use Python library and CLI tool for optimizing images for web and storage.
 
@@ -34,15 +34,15 @@ A powerful, easy-to-use Python library and CLI tool for optimizing images for we
 === "CLI"
 
     ```bash
-    pip install imgoptimizer
-    imgoptimizer optimize photo.jpg --quality 80 --width 1200
+    pip install optimg
+    optimg optimize photo.jpg --quality 80 --width 1200
     ```
 
 === "Library"
 
     ```python
-    from imgoptimizer import optimize_image
-    from imgoptimizer.models import OutputFormat
+    from optimg import optimize_image
+    from optimg.models import OutputFormat
 
     result = optimize_image(
         "photo.jpg",

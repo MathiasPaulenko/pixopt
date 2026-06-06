@@ -1,12 +1,12 @@
 # Library Usage
 
-ImgOptimizer can be used as a Python library for custom workflows and integrations.
+optimg can be used as a Python library for custom workflows and integrations.
 
 ## Basic optimization
 
 ```python
-from imgoptimizer import optimize_image
-from imgoptimizer.models import OutputFormat
+from optimg import optimize_image
+from optimg.models import OutputFormat
 
 result = optimize_image(
     "photo.jpg",
@@ -24,8 +24,8 @@ print(f"Output: {result.output_path}")
 ## Batch / directory processing
 
 ```python
-from imgoptimizer import optimize_directory
-from imgoptimizer.models import OutputFormat
+from optimg import optimize_directory
+from optimg.models import OutputFormat
 
 results = optimize_directory(
     "./images",
@@ -46,8 +46,8 @@ for r in results:
 ## Format conversion
 
 ```python
-from imgoptimizer import optimize_image
-from imgoptimizer.models import OutputFormat
+from optimg import optimize_image
+from optimg.models import OutputFormat
 
 result = optimize_image(
     "icon.png",
@@ -60,8 +60,8 @@ result = optimize_image(
 ## Lossless compression
 
 ```python
-from imgoptimizer import optimize_image
-from imgoptimizer.models import OutputFormat
+from optimg import optimize_image
+from optimg.models import OutputFormat
 
 result = optimize_image(
     "ui_asset.png",
@@ -74,8 +74,8 @@ result = optimize_image(
 ## Adaptive quality (target file size)
 
 ```python
-from imgoptimizer import optimize_image
-from imgoptimizer.models import OutputFormat
+from optimg import optimize_image
+from optimg.models import OutputFormat
 
 result = optimize_image(
     "photo.jpg",
@@ -88,7 +88,7 @@ result = optimize_image(
 ## Placeholders for lazy loading
 
 ```python
-from imgoptimizer.placeholder import generate_placeholder
+from optimg.placeholder import generate_placeholder
 
 # Dominant color
 color = generate_placeholder("photo.jpg", placeholder_type="color")
@@ -106,7 +106,7 @@ blurhash = generate_placeholder("photo.jpg", placeholder_type="blurhash")
 ## Smart format detection
 
 ```python
-from imgoptimizer.smart_format import detect_optimal_format
+from optimg.smart_format import detect_optimal_format
 
 fmt = detect_optimal_format("photo.jpg")
 # Returns OutputFormat.WEBP for photos, PNG for graphics, WEBP for transparent images
@@ -115,7 +115,7 @@ fmt = detect_optimal_format("photo.jpg")
 ## Responsive srcset generation
 
 ```python
-from imgoptimizer.srcset_generator import generate_srcset_images
+from optimg.srcset_generator import generate_srcset_images
 
 variants = generate_srcset_images(
     "hero.jpg",
@@ -132,7 +132,7 @@ for v in variants:
 ## Backup and min-size filter
 
 ```python
-from imgoptimizer import optimize_image
+from optimg import optimize_image
 
 result = optimize_image(
     "photo.jpg",
@@ -146,7 +146,7 @@ result = optimize_image(
 ## Favicon generation
 
 ```python
-from imgoptimizer.optimizer import convert_to_favicon
+from optimg.optimizer import convert_to_favicon
 
 result = convert_to_favicon(
     "logo.png",

@@ -6,9 +6,9 @@ with open("README.md", encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
-    name="imgoptimizer",
+    name="optimg",
     version="0.1.0",
-    description="A powerful image optimizer for web and storage. Resize, compress, and strip metadata.",
+    description="Fast Python image optimizer. Resize, compress, convert, and generate responsive assets.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Your Name",
@@ -34,7 +34,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "imgoptimizer=imgoptimizer.cli:app",
+            "optimg=optimg.cli:app",
         ],
     },
     classifiers=[

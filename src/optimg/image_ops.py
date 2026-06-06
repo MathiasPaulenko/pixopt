@@ -9,8 +9,8 @@ import piexif
 from PIL import Image
 from PIL.Image import Resampling
 
-from imgoptimizer.format_resolver import resolve_output_format
-from imgoptimizer.models import OutputFormat
+from optimg.format_resolver import resolve_output_format
+from optimg.models import OutputFormat
 
 
 def convert_mode(img: Image.Image, pillow_fmt: str) -> Image.Image:

@@ -1,4 +1,4 @@
-"""Tests for imgoptimizer.optimizer."""
+"""Tests for optimg.optimizer."""
 
 from io import BytesIO
 from pathlib import Path
@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from imgoptimizer.models import OutputFormat
-from imgoptimizer.optimizer import optimize_directory, optimize_image
+from optimg.models import OutputFormat
+from optimg.optimizer import optimize_directory, optimize_image
 
 
 @pytest.fixture
@@ -97,7 +97,7 @@ def test_optimize_directory_recursive(tmp_path: Path) -> None:
 
 
 def test_change_extension_converts_format(tmp_path: Path) -> None:
-    from imgoptimizer.optimizer import change_extension
+    from optimg.optimizer import change_extension
     src = tmp_path / "test.png"
     Image.new("RGB", (100, 100), color=(0, 255, 0)).save(src)
     out = tmp_path / "test.webp"
@@ -109,7 +109,7 @@ def test_change_extension_converts_format(tmp_path: Path) -> None:
 
 
 def test_convert_to_favicon(tmp_path: Path) -> None:
-    from imgoptimizer.optimizer import convert_to_favicon
+    from optimg.optimizer import convert_to_favicon
     src = tmp_path / "source.png"
     Image.new("RGBA", (256, 256), color=(0, 0, 255, 128)).save(src)
     out = tmp_path / "favicon.ico"
@@ -124,7 +124,7 @@ def test_convert_to_favicon(tmp_path: Path) -> None:
 
 
 def test_optimize_svg(tmp_path: Path) -> None:
-    from imgoptimizer.optimizer import optimize_image
+    from optimg.optimizer import optimize_image
     src = tmp_path / "test.svg"
     raw = (
         '<?xml version="1.0"?>\n'
@@ -147,8 +147,8 @@ def test_optimize_svg(tmp_path: Path) -> None:
 
 
 def test_animated_gif_to_webp(tmp_path: Path) -> None:
-    from imgoptimizer.models import OutputFormat
-    from imgoptimizer.optimizer import optimize_image
+    from optimg.models import OutputFormat
+    from optimg.optimizer import optimize_image
     src = tmp_path / "animated.gif"
     frames = [Image.new("RGB", (100, 100), color=(i * 50, 0, 0)) for i in range(3)]
     frames[0].save(
@@ -174,7 +174,7 @@ def test_heic_to_jpeg(tmp_path: Path) -> None:
     except Exception:
         pytest.skip("pillow-heif not available")
 
-    from imgoptimizer.optimizer import optimize_image
+    from optimg.optimizer import optimize_image
     src = tmp_path / "test.heic"
     img = Image.new("RGB", (200, 200), color=(0, 128, 0))
     img.save(src, format="HEIF")
@@ -188,8 +188,8 @@ def test_heic_to_jpeg(tmp_path: Path) -> None:
 
 
 def test_lossless_webp(tmp_path: Path) -> None:
-    from imgoptimizer.models import OutputFormat
-    from imgoptimizer.optimizer import optimize_image
+    from optimg.models import OutputFormat
+    from optimg.optimizer import optimize_image
     src = tmp_path / "test.png"
     Image.new("RGBA", (100, 100), color=(0, 255, 0, 128)).save(src)
     out = tmp_path / "test.webp"
@@ -203,8 +203,8 @@ def test_lossless_webp(tmp_path: Path) -> None:
 
 
 def test_generate_comparison_html(tmp_path: Path) -> None:
-    from imgoptimizer.html_comparison import generate_comparison_html
-    from imgoptimizer.optimizer import optimize_image
+    from optimg.html_comparison import generate_comparison_html
+    from optimg.optimizer import optimize_image
     src = tmp_path / "before.jpg"
     Image.new("RGB", (200, 200), color=(255, 0, 0)).save(src, quality=95)
     after = tmp_path / "after.jpg"
@@ -221,7 +221,7 @@ def test_generate_comparison_html(tmp_path: Path) -> None:
 
 
 def test_adaptive_quality_target_size(tmp_path: Path) -> None:
-    from imgoptimizer.adaptive_quality import find_quality_for_target_size
+    from optimg.adaptive_quality import find_quality_for_target_size
     from PIL import Image
     import random
     src = tmp_path / "test.jpg"
@@ -259,7 +259,7 @@ def test_adaptive_quality_target_size(tmp_path: Path) -> None:
 
 
 def test_generate_srcset(tmp_path: Path) -> None:
-    from imgoptimizer.srcset_generator import generate_srcset_images
+    from optimg.srcset_generator import generate_srcset_images
     src = tmp_path / "hero.jpg"
     img = Image.new("RGB", (1200, 800), color=(0, 128, 255))
     img.save(src, quality=95)
@@ -288,7 +288,7 @@ def test_generate_srcset(tmp_path: Path) -> None:
 
 
 def test_placeholder_color(tmp_path: Path) -> None:
-    from imgoptimizer.placeholder import generate_placeholder
+    from optimg.placeholder import generate_placeholder
     src = tmp_path / "test.jpg"
     Image.new("RGB", (200, 200), color=(255, 128, 64)).save(src)
     color = generate_placeholder(src, placeholder_type="color")
@@ -297,7 +297,7 @@ def test_placeholder_color(tmp_path: Path) -> None:
 
 
 def test_placeholder_lqip(tmp_path: Path) -> None:
-    from imgoptimizer.placeholder import generate_placeholder
+    from optimg.placeholder import generate_placeholder
     src = tmp_path / "test.jpg"
     Image.new("RGB", (200, 200), color=(255, 128, 64)).save(src)
     lqip = generate_placeholder(src, placeholder_type="lqip")
@@ -306,7 +306,7 @@ def test_placeholder_lqip(tmp_path: Path) -> None:
 
 
 def test_placeholder_blurhash(tmp_path: Path) -> None:
-    from imgoptimizer.placeholder import generate_placeholder
+    from optimg.placeholder import generate_placeholder
     src = tmp_path / "test.jpg"
     Image.new("RGB", (200, 200), color=(255, 128, 64)).save(src)
     bh = generate_placeholder(src, placeholder_type="blurhash")
@@ -315,7 +315,7 @@ def test_placeholder_blurhash(tmp_path: Path) -> None:
 
 
 def test_smart_format_photo(tmp_path: Path) -> None:
-    from imgoptimizer.smart_format import detect_optimal_format
+    from optimg.smart_format import detect_optimal_format
     import random
     src = tmp_path / "photo.jpg"
     img = Image.new("RGB", (400, 400))
@@ -328,7 +328,7 @@ def test_smart_format_photo(tmp_path: Path) -> None:
 
 
 def test_smart_format_transparent(tmp_path: Path) -> None:
-    from imgoptimizer.smart_format import detect_optimal_format
+    from optimg.smart_format import detect_optimal_format
     src = tmp_path / "icon.png"
     Image.new("RGBA", (100, 100), color=(0, 255, 0, 128)).save(src)
     fmt = detect_optimal_format(src)
@@ -336,7 +336,7 @@ def test_smart_format_transparent(tmp_path: Path) -> None:
 
 
 def test_backup_and_min_size(tmp_path: Path) -> None:
-    from imgoptimizer.optimizer import optimize_image
+    from optimg.optimizer import optimize_image
     src = tmp_path / "test.jpg"
     Image.new("RGB", (100, 100), color=(0, 128, 0)).save(src, quality=95)
     backup_dir = tmp_path / "backups"

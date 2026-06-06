@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from rich.table import Table
 
-from imgoptimizer.cli.app import console
-from imgoptimizer.models import OptimizationResult
+from optimg.cli.app import console
+from optimg.models import OptimizationResult
 
 
 def _human_size(size_bytes: int) -> str:

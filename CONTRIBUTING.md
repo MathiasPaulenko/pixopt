@@ -6,8 +6,8 @@ Thanks for your interest in contributing!
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/imgoptimizer.git
-   cd imgoptimizer
+   git clone https://github.com/yourusername/optimg.git
+   cd optimg
    ```
 
 2. Create a virtual environment and install dependencies:

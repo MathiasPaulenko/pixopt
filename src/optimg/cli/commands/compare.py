@@ -7,8 +7,8 @@ from typing import Annotated
 
 import typer
 
-from imgoptimizer.cli.app import app, console
-from imgoptimizer.cli.options import (
+from optimg.cli.app import app, console
+from optimg.cli.options import (
     FormatChoices,
     HeightOption,
     LosslessOption,
@@ -18,9 +18,9 @@ from imgoptimizer.cli.options import (
     StripOption,
     WidthOption,
 )
-from imgoptimizer.html_comparison import generate_comparison_html
-from imgoptimizer.models import OutputFormat
-from imgoptimizer.optimizer import optimize_image
+from optimg.html_comparison import generate_comparison_html
+from optimg.models import OutputFormat
+from optimg.optimizer import optimize_image
 
 
 @app.command()

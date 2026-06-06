@@ -7,15 +7,15 @@ from typing import Annotated
 
 import typer
 
-from imgoptimizer.cli.app import app, console
-from imgoptimizer.cli.options import (
+from optimg.cli.app import app, console
+from optimg.cli.options import (
     LosslessOption,
     OptimizeOption,
     ProgressiveOption,
     QualityOption,
     StripOption,
 )
-from imgoptimizer.srcset_generator import generate_srcset_images
+from optimg.srcset_generator import generate_srcset_images
 
 
 @app.command()

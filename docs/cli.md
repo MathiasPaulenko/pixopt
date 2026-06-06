@@ -27,8 +27,8 @@ The CLI is built with [Typer](https://typer.tiangolo.com/) and provides an intui
 Optimize a single image or all images in a directory.
 
 ```bash
-imgoptimizer optimize photo.jpg photo_optimized.jpg --quality 80 --width 1200
-imgoptimizer optimize ./images ./optimized --recursive --quality 85 --format webp
+optimg optimize photo.jpg photo_optimized.jpg --quality 80 --width 1200
+optimg optimize ./images ./optimized --recursive --quality 85 --format webp
 ```
 
 ### `batch`
@@ -36,7 +36,7 @@ imgoptimizer optimize ./images ./optimized --recursive --quality 85 --format web
 Optimize multiple specific files at once.
 
 ```bash
-imgoptimizer batch photo1.jpg photo2.png photo3.bmp -o ./optimized --width 800
+optimg batch photo1.jpg photo2.png photo3.bmp -o ./optimized --width 800
 ```
 
 ### `convert`
@@ -44,8 +44,8 @@ imgoptimizer batch photo1.jpg photo2.png photo3.bmp -o ./optimized --width 800
 Convert an image to a different format or extension.
 
 ```bash
-imgoptimizer convert photo.png photo.webp -f webp
-imgoptimizer convert ./images ./webp_images -r -f webp
+optimg convert photo.png photo.webp -f webp
+optimg convert ./images ./webp_images -r -f webp
 ```
 
 ### `favicon`
@@ -53,8 +53,8 @@ imgoptimizer convert ./images ./webp_images -r -f webp
 Convert an image to a multi-resolution ICO favicon.
 
 ```bash
-imgoptimizer favicon logo.png favicon.ico
-imgoptimizer favicon logo.png --size 16 --size 32 --size 48
+optimg favicon logo.png favicon.ico
+optimg favicon logo.png --size 16 --size 32 --size 48
 ```
 
 ### `info`
@@ -62,7 +62,7 @@ imgoptimizer favicon logo.png --size 16 --size 32 --size 48
 Inspect image metadata without optimizing.
 
 ```bash
-imgoptimizer info photo.jpg
+optimg info photo.jpg
 ```
 
 ### `compare`
@@ -70,7 +70,7 @@ imgoptimizer info photo.jpg
 Generate an interactive HTML before/after slider.
 
 ```bash
-imgoptimizer compare photo.jpg comparison.html --open
+optimg compare photo.jpg comparison.html --open
 ```
 
 ### `srcset`
@@ -78,8 +78,8 @@ imgoptimizer compare photo.jpg comparison.html --open
 Generate responsive image variants and an HTML srcset snippet.
 
 ```bash
-imgoptimizer srcset hero.jpg --sizes 320,640,1024,1920 --output-dir ./responsive/
-imgoptimizer srcset hero.jpg --sizes 320,640,1024,1920 -f webp --html snippet.html
+optimg srcset hero.jpg --sizes 320,640,1024,1920 --output-dir ./responsive/
+optimg srcset hero.jpg --sizes 320,640,1024,1920 -f webp --html snippet.html
 ```
 
 ### `placeholder`
@@ -87,9 +87,9 @@ imgoptimizer srcset hero.jpg --sizes 320,640,1024,1920 -f webp --html snippet.ht
 Extract a placeholder for lazy loading (color, LQIP, or blurhash).
 
 ```bash
-imgoptimizer placeholder photo.jpg --type color
-imgoptimizer placeholder photo.jpg --type lqip
-imgoptimizer placeholder photo.jpg --type blurhash -o blurhash.txt
+optimg placeholder photo.jpg --type color
+optimg placeholder photo.jpg --type lqip
+optimg placeholder photo.jpg --type blurhash -o blurhash.txt
 ```
 
 ## Use-case examples
@@ -97,48 +97,48 @@ imgoptimizer placeholder photo.jpg --type blurhash -o blurhash.txt
 ### Lossless PNG/WEBP for UI assets
 
 ```bash
-imgoptimizer convert icon.png icon.webp --lossless -f webp
+optimg convert icon.png icon.webp --lossless -f webp
 ```
 
 ### Adaptive quality (target file size)
 
 ```bash
-imgoptimizer optimize photo.jpg --target-size 50
+optimg optimize photo.jpg --target-size 50
 ```
 
 ### Smart format detection
 
 ```bash
-imgoptimizer optimize photo.jpg --smart-format
-imgoptimizer convert graphic.png output --smart-format
+optimg optimize photo.jpg --smart-format
+optimg convert graphic.png output --smart-format
 ```
 
 ### Backup originals before processing
 
 ```bash
-imgoptimizer optimize ./images --backup ./originals --recursive
+optimg optimize ./images --backup ./originals --recursive
 ```
 
 ### Skip already-optimized files
 
 ```bash
-imgoptimizer optimize ./images --min-size 10 --recursive
+optimg optimize ./images --min-size 10 --recursive
 ```
 
 ### Animated GIF to animated WEBP
 
 ```bash
-imgoptimizer convert animation.gif animation.webp -f webp
+optimg convert animation.gif animation.webp -f webp
 ```
 
 ### Convert HEIC (iPhone) to JPEG
 
 ```bash
-imgoptimizer convert photo.heic photo.jpg
+optimg convert photo.heic photo.jpg
 ```
 
 ### Optimize SVG
 
 ```bash
-imgoptimizer convert icon.svg icon.min.svg
+optimg convert icon.svg icon.min.svg
 ```

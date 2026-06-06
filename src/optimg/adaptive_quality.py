@@ -6,7 +6,7 @@ from io import BytesIO
 
 from PIL import Image
 
-from imgoptimizer.image_ops import build_save_kwargs, convert_mode, resize_image
+from optimg.image_ops import build_save_kwargs, convert_mode, resize_image
 
 
 def find_quality_for_target_size(

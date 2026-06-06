@@ -1,7 +1,7 @@
-site_name: ImgOptimizer
-site_url: https://imgoptimizer.readthedocs.io/
+site_name: optimg
+site_url: https://optimg.readthedocs.io/
 site_description: A powerful Python library and CLI tool for optimizing images for web and storage.
-site_author: ImgOptimizer contributors
+site_author: optimg contributors
 
 theme:
   name: material
@@ -30,10 +30,10 @@ theme:
     - search.highlight
     - content.code.copy
 
-repo_name: imgoptimizer
-repo_url: https://github.com/yourusername/imgoptimizer
+repo_name: optimg
+repo_url: https://github.com/yourusername/optimg
 
-copyright: Copyright &copy; 2026 ImgOptimizer contributors
+copyright: Copyright &copy; 2026 optimg contributors
 
 plugins:
   - search
