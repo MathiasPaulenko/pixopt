@@ -36,8 +36,13 @@ def find_quality_for_target_size(
         img: Open PIL Image.
         pillow_fmt: Target Pillow format (JPEG or WEBP).
         target_size: Target file size in bytes.
-        max_width, max_height, keep_aspect_ratio: Resize options.
-        strip_metadata, progressive, optimize, lossless: Passed to build_save_kwargs.
+        max_width: Maximum width in pixels, or None.
+        max_height: Maximum height in pixels, or None.
+        keep_aspect_ratio: Whether to keep the original aspect ratio.
+        strip_metadata: Whether to strip metadata before saving.
+        progressive: Whether to use progressive encoding.
+        optimize: Whether to optimize the output.
+        lossless: Whether to use lossless compression.
         min_quality: Lowest quality to try.
         max_quality: Highest quality to try.
         tolerance: Fractional tolerance around target_size (e.g. 0.05 = 5%).
