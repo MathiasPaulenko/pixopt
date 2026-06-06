@@ -9,7 +9,7 @@ from pixopt.optimizer import (
     optimize_image,
 )
 
-__version__ = "1.0.5"
+__version__ = "1.0.6"
 __all__ = [
     "OptimizationResult",
     "change_extension",
