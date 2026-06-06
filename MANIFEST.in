@@ -1,0 +1,7 @@
+include README.md
+include CHANGELOG.md
+include LICENSE
+recursive-include src *.py
+recursive-exclude tests *
+recursive-exclude .pytest_cache *
+recursive-exclude __pycache__ *

@@ -1,0 +1,75 @@
+site_name: ImgOptimizer
+site_url: https://imgoptimizer.readthedocs.io/
+site_description: A powerful Python library and CLI tool for optimizing images for web and storage.
+site_author: ImgOptimizer contributors
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+repo_name: imgoptimizer
+repo_url: https://github.com/yourusername/imgoptimizer
+
+copyright: Copyright &copy; 2026 ImgOptimizer contributors
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_root_heading: true
+            show_source: true
+            show_if_no_docstring: true
+            members_order: source
+            filters: ["!^_"]
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - CLI Usage: cli.md
+  - Library Usage: library.md
+  - API Reference: api.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
