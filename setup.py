@@ -1,18 +1,26 @@
-"""Legacy setuptools entry-point. Works standalone or with pyproject.toml."""
+"""Dynamic setuptools entry-point. Reads version from pyproject.toml."""
+
+import re
 
 from setuptools import find_packages, setup
 
 with open("README.md", encoding="utf-8") as f:
     long_description = f.read()
 
+with open("pyproject.toml", encoding="utf-8") as f:
+    pyproject = f.read()
+
+match = re.search(r'^version = "([^"]+)"', pyproject, re.M)
+version = match.group(1) if match else "0.0.0"
+
 setup(
     name="optimg",
-    version="0.1.0",
+    version=version,
     description="Fast Python image optimizer. Resize, compress, convert, and generate responsive assets.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="Mathias Paulenko",
+    author_email="mathias.paulenko@outlook.com",
     license="MIT",
     python_requires=">=3.9",
     packages=find_packages(where="src"),

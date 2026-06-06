@@ -10,7 +10,7 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Mathias Paulenko Echeverz", email = "mathias.paulenko@outlook.com"}
 ]
 keywords = ["image", "optimization", "compression", "webp", "jpeg", "png", "cli"]
 classifiers = [
@@ -39,6 +39,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
+    "python-semantic-release>=9.0.0",
 ]
 docs = [
     "mkdocs>=1.6.0",
@@ -50,9 +51,9 @@ docs = [
 optimg = "optimg.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/optimg"
-Repository = "https://github.com/yourusername/optimg"
-Issues = "https://github.com/yourusername/optimg/issues"
+Homepage = "https://github.com/MathiasPaulenko/optimg"
+Repository = "https://github.com/MathiasPaulenko/optimg"
+Issues = "https://github.com/MathiasPaulenko/optimg/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/optimg"]
@@ -73,3 +74,18 @@ warn_unused_configs = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+version_variables = ["src/optimg/__init__.py:__version__"]
+build_command = "python -m build"
+upload_to_pypi = false
+upload_to_release = true
+commit_author = "github-actions <actions@github.com>"
+commit_message = "chore(release): bump version to {{version}} [skip ci]"
+
+[tool.semantic_release.branches.main]
+match = "main"
+
+[tool.semantic_release.branches.master]
+match = "master"

@@ -1,5 +1,5 @@
 site_name: optimg
-site_url: https://optimg.readthedocs.io/
+site_url: https://mathiaspaulenko.github.io/optimg/
 site_description: A powerful Python library and CLI tool for optimizing images for web and storage.
 site_author: optimg contributors
 
@@ -31,7 +31,7 @@ theme:
     - content.code.copy
 
 repo_name: optimg
-repo_url: https://github.com/yourusername/optimg
+repo_url: https://github.com/MathiasPaulenko/optimg
 
 copyright: Copyright &copy; 2026 optimg contributors
 
