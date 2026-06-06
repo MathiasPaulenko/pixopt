@@ -58,8 +58,7 @@ edit_uri: blob/main/docs/
 copyright: Copyright &copy; 2026 pixopt contributors
 
 plugins:
-  - search:
-      separator: '[\s\-,:!=\[\]()"/]+|\.(?!\w)|&[lg]t;|(?<!\w)\'\'{2,}'
+  - search
   - mkdocstrings:
       handlers:
         python:
