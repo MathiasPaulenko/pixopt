@@ -138,9 +138,6 @@ jobs:
 
       - name: Publish to PyPI (Token fallback)
         if: steps.trusted-publish.outcome == 'failure'
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          pip install twine
-          twine upload dist/*
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}
