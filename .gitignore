@@ -45,4 +45,5 @@ Thumbs.db
 *.bmp
 *.gif
 *.tiff
+site/
 !tests/fixtures/
