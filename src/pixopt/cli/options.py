@@ -6,7 +6,7 @@ from typing import Annotated
 
 import typer
 
-from optimg.models import OutputFormat
+from pixopt.models import OutputFormat
 
 FormatChoices = Annotated[
     OutputFormat,

@@ -6,7 +6,7 @@ import typer
 from rich.console import Console
 
 app = typer.Typer(
-    name="optimg",
+    name="pixopt",
     help="Optimize images for web and storage.",
     no_args_is_help=True,
     rich_markup_mode="rich",

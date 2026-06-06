@@ -4,11 +4,9 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
-from PIL import Image
 
-from optimg.adaptive_quality import find_quality_for_target_size
-from optimg.cli.app import app, console
-from optimg.cli.options import (
+from pixopt.cli.app import app, console
+from pixopt.cli.options import (
     BackupOption,
     FormatChoices,
     HeightOption,
@@ -20,50 +18,16 @@ from optimg.cli.options import (
     QualityOption,
     RecursiveOption,
     StripOption,
-    TargetSizeOption,
     WidthOption,
 )
-from optimg.cli.output import _print_result, _print_summary
-from optimg.models import OutputFormat
-from optimg.optimizer import optimize_directory, optimize_image
-from optimg.smart_format import detect_optimal_format
-
-
-def _resolve_quality(
-    source: Path,
-    quality: int,
-    target_size: int | None,
-    fmt: OutputFormat,
-    width: int | None,
-    height: int | None,
-    strip: bool,
-    progressive: bool,
-    optimize_flag: bool,
-    lossless: bool,
-) -> int:
-    if target_size is None or target_size <= 0:
-        return quality
-    with Image.open(source) as img:
-        img.load()
-        from optimg.format_resolver import resolve_output_format
-        _, pillow_fmt = resolve_output_format(img, source, fmt)
-        if pillow_fmt not in ("JPEG", "WEBP"):
-            return quality
-        return find_quality_for_target_size(
-            img,
-            pillow_fmt,
-            target_size * 1024,
-            max_width=width,
-            max_height=height,
-            strip_metadata=strip,
-            progressive=progressive,
-            optimize=optimize_flag,
-            lossless=lossless,
-        )
+from pixopt.cli.output import _print_result, _print_summary
+from pixopt.models import OutputFormat
+from pixopt.optimizer import change_extension, optimize_directory
+from pixopt.smart_format import detect_optimal_format
 
 
 @app.command()
-def optimize(
+def convert(
     source: Annotated[
         Path,
         typer.Argument(
@@ -89,7 +53,6 @@ def optimize(
     recursive: RecursiveOption = False,
     overwrite: OverwriteOption = False,
     lossless: LosslessOption = False,
-    target_size: TargetSizeOption = None,
     backup: BackupOption = None,
     min_size: MinSizeOption = None,
     smart_format: Annotated[
@@ -100,7 +63,7 @@ def optimize(
         ),
     ] = False,
 ) -> None:
-    """Optimize an image or all images in a directory."""
+    """Convert image(s) to a different format or extension."""
     resolved_fmt = fmt
     if smart_format and not source.is_dir():
         detected = detect_optimal_format(source)
@@ -129,24 +92,12 @@ def optimize(
         )
         _print_summary(results)
     else:
-        resolved_quality = _resolve_quality(
-            source,
-            quality,
-            target_size,
-            resolved_fmt,
-            width,
-            height,
-            strip,
-            progressive,
-            optimize_flag,
-            lossless,
-        )
-        result = optimize_image(
+        result = change_extension(
             source,
             output,
             max_width=width,
             max_height=height,
-            quality=resolved_quality,
+            quality=quality,
             strip_metadata=strip,
             output_format=resolved_fmt,
             progressive=progressive,

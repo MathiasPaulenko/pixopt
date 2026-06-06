@@ -7,8 +7,8 @@ import typer
 from PIL import Image
 from PIL.ExifTags import Base
 
-from optimg.cli.app import app, console
-from optimg.cli.output import _human_size
+from pixopt.cli.app import app, console
+from pixopt.cli.output import _human_size
 
 
 @app.command()

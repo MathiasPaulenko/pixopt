@@ -5,9 +5,9 @@ from typing import Annotated
 
 import typer
 
-from optimg.cli.app import app
-from optimg.cli.output import _print_result
-from optimg.optimizer import convert_to_favicon
+from pixopt.cli.app import app
+from pixopt.cli.output import _print_result
+from pixopt.optimizer import convert_to_favicon
 
 
 @app.command()

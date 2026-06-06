@@ -6,8 +6,8 @@ from typing import Annotated
 import typer
 from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 
-from optimg.cli.app import app, console
-from optimg.cli.options import (
+from pixopt.cli.app import app, console
+from pixopt.cli.options import (
     BackupOption,
     FormatChoices,
     HeightOption,
@@ -19,9 +19,9 @@ from optimg.cli.options import (
     StripOption,
     WidthOption,
 )
-from optimg.cli.output import _print_summary
-from optimg.models import OutputFormat
-from optimg.optimizer import optimize_image
+from pixopt.cli.output import _print_summary
+from pixopt.models import OutputFormat
+from pixopt.optimizer import optimize_image
 
 
 @app.command()

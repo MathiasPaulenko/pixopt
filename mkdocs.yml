@@ -1,7 +1,7 @@
-site_name: optimg
-site_url: https://mathiaspaulenko.github.io/optimg/
+site_name: pixopt
+site_url: https://mathiaspaulenko.github.io/pixopt/
 site_description: A powerful Python library and CLI tool for optimizing images for web and storage.
-site_author: optimg contributors
+site_author: pixopt contributors
 
 theme:
   name: material
@@ -30,10 +30,10 @@ theme:
     - search.highlight
     - content.code.copy
 
-repo_name: optimg
-repo_url: https://github.com/MathiasPaulenko/optimg
+repo_name: pixopt
+repo_url: https://github.com/MathiasPaulenko/pixopt
 
-copyright: Copyright &copy; 2026 optimg contributors
+copyright: Copyright &copy; 2026 pixopt contributors
 
 plugins:
   - search

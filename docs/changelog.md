@@ -1,16 +1,16 @@
 # Changelog
 
-See [CHANGELOG.md](https://github.com/yourusername/optimg/blob/main/CHANGELOG.md) for the full changelog.
+See [CHANGELOG.md](https://github.com/yourusername/pixopt/blob/main/CHANGELOG.md) for the full changelog.
 
 ## [Unreleased]
 
 ### Added
 
 - Lossless compression mode for PNG/WEBP (`--lossless`).
-- Interactive HTML before/after comparison slider (`optimg compare`).
+- Interactive HTML before/after comparison slider (`pixopt compare`).
 - Adaptive quality via binary search for target file size (`--target-size`).
-- Responsive srcset image generation with HTML snippet output (`optimg srcset`).
-- Lazy-loading placeholders: dominant color, LQIP data URI, and blurhash (`optimg placeholder`).
+- Responsive srcset image generation with HTML snippet output (`pixopt srcset`).
+- Lazy-loading placeholders: dominant color, LQIP data URI, and blurhash (`pixopt placeholder`).
 - Smart format detection: auto-select WEBP/JPEG/PNG based on image content (`--smart-format`).
 - Backup originals before processing (`--backup`).
 - Skip files below a minimum size threshold (`--min-size`).

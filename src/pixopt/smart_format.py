@@ -6,7 +6,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from optimg.models import OutputFormat
+from pixopt.models import OutputFormat
 
 
 def has_transparency(img: Image.Image) -> bool:

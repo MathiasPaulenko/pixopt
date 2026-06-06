@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from rich.table import Table
 
-from optimg.cli.app import console
-from optimg.models import OptimizationResult
+from pixopt.cli.app import console
+from pixopt.models import OptimizationResult
 
 
 def _human_size(size_bytes: int) -> str:

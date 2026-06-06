@@ -4,7 +4,7 @@ hide:
   - toc
 ---
 
-# optimg
+# pixopt
 
 A powerful, easy-to-use Python library and CLI tool for optimizing images for web and storage.
 
@@ -34,15 +34,15 @@ A powerful, easy-to-use Python library and CLI tool for optimizing images for we
 === "CLI"
 
     ```bash
-    pip install optimg
-    optimg optimize photo.jpg --quality 80 --width 1200
+    pip install pixopt
+    pixopt optimize photo.jpg --quality 80 --width 1200
     ```
 
 === "Library"
 
     ```python
-    from optimg import optimize_image
-    from optimg.models import OutputFormat
+    from pixopt import optimize_image
+    from pixopt.models import OutputFormat
 
     result = optimize_image(
         "photo.jpg",

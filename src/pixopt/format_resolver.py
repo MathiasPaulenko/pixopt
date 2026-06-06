@@ -6,8 +6,8 @@ from pathlib import Path
 
 from PIL import Image
 
-from optimg.constants import EXT_TO_FORMAT, FORMAT_MAP, FORMAT_TO_EXT
-from optimg.models import OutputFormat
+from pixopt.constants import EXT_TO_FORMAT, FORMAT_MAP, FORMAT_TO_EXT
+from pixopt.models import OutputFormat
 
 
 def resolve_output_format(

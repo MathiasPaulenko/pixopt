@@ -1,4 +1,4 @@
-# optimg
+# pixopt
 
 A powerful, easy-to-use Python library and CLI tool for optimizing images for web and storage.
 
@@ -26,7 +26,7 @@ A powerful, easy-to-use Python library and CLI tool for optimizing images for we
 ## Installation
 
 ```bash
-pip install optimg
+pip install pixopt
 ```
 
 ## CLI Usage
@@ -34,109 +34,109 @@ pip install optimg
 ### Optimize a single image
 
 ```bash
-optimg optimize photo.jpg photo_optimized.jpg --quality 80 --width 1200
+pixopt optimize photo.jpg photo_optimized.jpg --quality 80 --width 1200
 ```
 
 ### Optimize all images in a directory
 
 ```bash
-optimg optimize ./images ./optimized --recursive --quality 85 --format webp
+pixopt optimize ./images ./optimized --recursive --quality 85 --format webp
 ```
 
 ### Batch optimize specific files
 
 ```bash
-optimg batch photo1.jpg photo2.png photo3.bmp -o ./optimized --width 800
+pixopt batch photo1.jpg photo2.png photo3.bmp -o ./optimized --width 800
 ```
 
 ### Convert image format / extension
 
 ```bash
-optimg convert photo.png photo.webp -f webp
-optimg convert ./images ./webp_images -r -f webp
+pixopt convert photo.png photo.webp -f webp
+pixopt convert ./images ./webp_images -r -f webp
 ```
 
 ### Generate favicon (.ico)
 
 ```bash
-optimg favicon logo.png favicon.ico
-optimg favicon logo.png --size 16 --size 32 --size 48
+pixopt favicon logo.png favicon.ico
+pixopt favicon logo.png --size 16 --size 32 --size 48
 ```
 
 ### Convert animated GIF to animated WEBP
 
 ```bash
-optimg convert animation.gif animation.webp -f webp
+pixopt convert animation.gif animation.webp -f webp
 ```
 
 ### Optimize SVG
 
 ```bash
-optimg convert icon.svg icon.min.svg
+pixopt convert icon.svg icon.min.svg
 ```
 
 ### Convert HEIC (iPhone) to JPEG
 
 ```bash
-optimg convert photo.heic photo.jpg
+pixopt convert photo.heic photo.jpg
 ```
 
 ### Lossless PNG/WEBP for UI assets
 
 ```bash
-optimg convert icon.png icon.webp --lossless -f webp
+pixopt convert icon.png icon.webp --lossless -f webp
 ```
 
 ### Adaptive quality (target file size)
 
 ```bash
-optimg optimize photo.jpg --target-size 50
+pixopt optimize photo.jpg --target-size 50
 ```
 
 ### Generate visual comparison HTML
 
 ```bash
-optimg compare photo.jpg comparison.html --open
+pixopt compare photo.jpg comparison.html --open
 ```
 
 ### Generate responsive srcset images
 
 ```bash
-optimg srcset hero.jpg --sizes 320,640,1024,1920 --output-dir ./responsive/
-optimg srcset hero.jpg --sizes 320,640,1024,1920 -f webp --html snippet.html
+pixopt srcset hero.jpg --sizes 320,640,1024,1920 --output-dir ./responsive/
+pixopt srcset hero.jpg --sizes 320,640,1024,1920 -f webp --html snippet.html
 ```
 
 ### Generate lazy-loading placeholders
 
 ```bash
-optimg placeholder photo.jpg --type color
-optimg placeholder photo.jpg --type lqip
-optimg placeholder photo.jpg --type blurhash -o blurhash.txt
+pixopt placeholder photo.jpg --type color
+pixopt placeholder photo.jpg --type lqip
+pixopt placeholder photo.jpg --type blurhash -o blurhash.txt
 ```
 
 ### Smart format detection
 
 ```bash
-optimg optimize photo.jpg --smart-format
-optimg convert graphic.png output --smart-format
+pixopt optimize photo.jpg --smart-format
+pixopt convert graphic.png output --smart-format
 ```
 
 ### Backup originals before processing
 
 ```bash
-optimg optimize ./images --backup ./originals --recursive
+pixopt optimize ./images --backup ./originals --recursive
 ```
 
 ### Skip already-optimized files
 
 ```bash
-optimg optimize ./images --min-size 10 --recursive
+pixopt optimize ./images --min-size 10 --recursive
 ```
 
 ### Inspect image info without optimizing
 
 ```bash
-optimg info photo.jpg
+pixopt info photo.jpg
 ```
 
 ### Available options
@@ -160,8 +160,8 @@ optimg info photo.jpg
 ## Library Usage
 
 ```python
-from optimg import optimize_image
-from optimg.models import OutputFormat
+from pixopt import optimize_image
+from pixopt.models import OutputFormat
 
 # Optimize a single image
 result = optimize_image(
@@ -179,7 +179,7 @@ print(f"Saved {result.savings_percent:.1f}% ({result.human_savings})")
 ### Placeholders for lazy loading
 
 ```python
-from optimg.placeholder import generate_placeholder
+from pixopt.placeholder import generate_placeholder
 
 color = generate_placeholder("photo.jpg", placeholder_type="color")
 lqip = generate_placeholder("photo.jpg", placeholder_type="lqip")
@@ -189,7 +189,7 @@ blurhash = generate_placeholder("photo.jpg", placeholder_type="blurhash")
 ### Smart format detection
 
 ```python
-from optimg.smart_format import detect_optimal_format
+from pixopt.smart_format import detect_optimal_format
 
 fmt = detect_optimal_format("photo.jpg")
 # Returns OutputFormat.WEBP for photos, PNG for graphics, WEBP for transparent images
@@ -198,7 +198,7 @@ fmt = detect_optimal_format("photo.jpg")
 ### Responsive srcset generation
 
 ```python
-from optimg.srcset_generator import generate_srcset_images
+from pixopt.srcset_generator import generate_srcset_images
 
 variants = generate_srcset_images(
     "hero.jpg",
@@ -214,7 +214,7 @@ for v in variants:
 ### Batch / directory processing
 
 ```python
-from optimg import optimize_directory
+from pixopt import optimize_directory
 
 results = optimize_directory(
     "./images",
@@ -235,8 +235,8 @@ for r in results:
 Install in development mode:
 
 ```bash
-git clone https://github.com/yourusername/optimg.git
-cd optimg
+git clone https://github.com/yourusername/pixopt.git
+cd pixopt
 pip install -e ".[dev]"
 ```
 

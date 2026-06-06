@@ -14,7 +14,7 @@ match = re.search(r'^version = "([^"]+)"', pyproject, re.M)
 version = match.group(1) if match else "0.0.0"
 
 setup(
-    name="optimg",
+    name="pixopt",
     version=version,
     description="Fast Python image optimizer. Resize, compress, convert, and generate responsive assets.",
     long_description=long_description,
@@ -42,7 +42,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "optimg=optimg.cli:app",
+            "pixopt=pixopt.cli:app",
         ],
     },
     classifiers=[

@@ -1,6 +1,6 @@
 """Constants and lookup tables for image formats."""
 
-from optimg.models import OutputFormat
+from pixopt.models import OutputFormat
 
 EXT_TO_FORMAT: dict[str, str] = {
     ".jpg": "JPEG",

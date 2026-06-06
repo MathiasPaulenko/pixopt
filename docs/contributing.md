@@ -2,13 +2,13 @@
 
 Thanks for your interest in contributing!
 
-See [CONTRIBUTING.md](https://github.com/yourusername/optimg/blob/main/CONTRIBUTING.md) for the full guide.
+See [CONTRIBUTING.md](https://github.com/yourusername/pixopt/blob/main/CONTRIBUTING.md) for the full guide.
 
 ## Quick setup
 
 ```bash
-git clone https://github.com/yourusername/optimg.git
-cd optimg
+git clone https://github.com/yourusername/pixopt.git
+cd pixopt
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"

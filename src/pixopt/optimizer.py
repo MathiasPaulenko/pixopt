@@ -9,8 +9,8 @@ from typing import Iterable
 from PIL import Image
 from PIL.Image import Resampling
 
-from optimg.constants import DEFAULT_FAVICON_SIZES
-from optimg.image_ops import (
+from pixopt.constants import DEFAULT_FAVICON_SIZES
+from pixopt.image_ops import (
     build_save_kwargs,
     convert_mode,
     resize_image,
@@ -18,9 +18,9 @@ from optimg.image_ops import (
     strip_exif_post_process,
     strip_metadata_pillow,
 )
-from optimg.models import OptimizationResult, OutputFormat
-from optimg.svg_optimizer import optimize_svg
-from optimg.utils import discover_images
+from pixopt.models import OptimizationResult, OutputFormat
+from pixopt.svg_optimizer import optimize_svg
+from pixopt.utils import discover_images
 
 # Register HEIC/HEIF support if pillow-heif is available
 try:

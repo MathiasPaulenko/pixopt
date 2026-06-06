@@ -7,8 +7,8 @@ from typing import Annotated
 
 import typer
 
-from optimg.cli.app import app, console
-from optimg.cli.options import (
+from pixopt.cli.app import app, console
+from pixopt.cli.options import (
     FormatChoices,
     HeightOption,
     LosslessOption,
@@ -18,9 +18,9 @@ from optimg.cli.options import (
     StripOption,
     WidthOption,
 )
-from optimg.html_comparison import generate_comparison_html
-from optimg.models import OutputFormat
-from optimg.optimizer import optimize_image
+from pixopt.html_comparison import generate_comparison_html
+from pixopt.models import OutputFormat
+from pixopt.optimizer import optimize_image
 
 
 @app.command()

@@ -1,17 +1,17 @@
 # Installation
 
-optimg requires Python 3.9 or newer.
+pixopt requires Python 3.9 or newer.
 
 ## From PyPI
 
 ```bash
-pip install optimg
+pip install pixopt
 ```
 
 ## With HEIC/HEIF support
 
 ```bash
-pip install optimg[pillow-heif]
+pip install pixopt[pillow-heif]
 ```
 
 Or install the extra directly:
@@ -23,13 +23,13 @@ pip install pillow-heif
 ## From source
 
 ```bash
-git clone https://github.com/yourusername/optimg.git
-cd optimg
+git clone https://github.com/yourusername/pixopt.git
+cd pixopt
 pip install -e ".[dev]"
 ```
 
 ## Verify installation
 
 ```bash
-optimg --help
+pixopt --help
 ```

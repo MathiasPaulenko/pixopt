@@ -27,8 +27,8 @@ The CLI is built with [Typer](https://typer.tiangolo.com/) and provides an intui
 Optimize a single image or all images in a directory.
 
 ```bash
-optimg optimize photo.jpg photo_optimized.jpg --quality 80 --width 1200
-optimg optimize ./images ./optimized --recursive --quality 85 --format webp
+pixopt optimize photo.jpg photo_optimized.jpg --quality 80 --width 1200
+pixopt optimize ./images ./optimized --recursive --quality 85 --format webp
 ```
 
 ### `batch`
@@ -36,7 +36,7 @@ optimg optimize ./images ./optimized --recursive --quality 85 --format webp
 Optimize multiple specific files at once.
 
 ```bash
-optimg batch photo1.jpg photo2.png photo3.bmp -o ./optimized --width 800
+pixopt batch photo1.jpg photo2.png photo3.bmp -o ./optimized --width 800
 ```
 
 ### `convert`
@@ -44,8 +44,8 @@ optimg batch photo1.jpg photo2.png photo3.bmp -o ./optimized --width 800
 Convert an image to a different format or extension.
 
 ```bash
-optimg convert photo.png photo.webp -f webp
-optimg convert ./images ./webp_images -r -f webp
+pixopt convert photo.png photo.webp -f webp
+pixopt convert ./images ./webp_images -r -f webp
 ```
 
 ### `favicon`
@@ -53,8 +53,8 @@ optimg convert ./images ./webp_images -r -f webp
 Convert an image to a multi-resolution ICO favicon.
 
 ```bash
-optimg favicon logo.png favicon.ico
-optimg favicon logo.png --size 16 --size 32 --size 48
+pixopt favicon logo.png favicon.ico
+pixopt favicon logo.png --size 16 --size 32 --size 48
 ```
 
 ### `info`
@@ -62,7 +62,7 @@ optimg favicon logo.png --size 16 --size 32 --size 48
 Inspect image metadata without optimizing.
 
 ```bash
-optimg info photo.jpg
+pixopt info photo.jpg
 ```
 
 ### `compare`
@@ -70,7 +70,7 @@ optimg info photo.jpg
 Generate an interactive HTML before/after slider.
 
 ```bash
-optimg compare photo.jpg comparison.html --open
+pixopt compare photo.jpg comparison.html --open
 ```
 
 ### `srcset`
@@ -78,8 +78,8 @@ optimg compare photo.jpg comparison.html --open
 Generate responsive image variants and an HTML srcset snippet.
 
 ```bash
-optimg srcset hero.jpg --sizes 320,640,1024,1920 --output-dir ./responsive/
-optimg srcset hero.jpg --sizes 320,640,1024,1920 -f webp --html snippet.html
+pixopt srcset hero.jpg --sizes 320,640,1024,1920 --output-dir ./responsive/
+pixopt srcset hero.jpg --sizes 320,640,1024,1920 -f webp --html snippet.html
 ```
 
 ### `placeholder`
@@ -87,9 +87,9 @@ optimg srcset hero.jpg --sizes 320,640,1024,1920 -f webp --html snippet.html
 Extract a placeholder for lazy loading (color, LQIP, or blurhash).
 
 ```bash
-optimg placeholder photo.jpg --type color
-optimg placeholder photo.jpg --type lqip
-optimg placeholder photo.jpg --type blurhash -o blurhash.txt
+pixopt placeholder photo.jpg --type color
+pixopt placeholder photo.jpg --type lqip
+pixopt placeholder photo.jpg --type blurhash -o blurhash.txt
 ```
 
 ## Use-case examples
@@ -97,48 +97,48 @@ optimg placeholder photo.jpg --type blurhash -o blurhash.txt
 ### Lossless PNG/WEBP for UI assets
 
 ```bash
-optimg convert icon.png icon.webp --lossless -f webp
+pixopt convert icon.png icon.webp --lossless -f webp
 ```
 
 ### Adaptive quality (target file size)
 
 ```bash
-optimg optimize photo.jpg --target-size 50
+pixopt optimize photo.jpg --target-size 50
 ```
 
 ### Smart format detection
 
 ```bash
-optimg optimize photo.jpg --smart-format
-optimg convert graphic.png output --smart-format
+pixopt optimize photo.jpg --smart-format
+pixopt convert graphic.png output --smart-format
 ```
 
 ### Backup originals before processing
 
 ```bash
-optimg optimize ./images --backup ./originals --recursive
+pixopt optimize ./images --backup ./originals --recursive
 ```
 
 ### Skip already-optimized files
 
 ```bash
-optimg optimize ./images --min-size 10 --recursive
+pixopt optimize ./images --min-size 10 --recursive
 ```
 
 ### Animated GIF to animated WEBP
 
 ```bash
-optimg convert animation.gif animation.webp -f webp
+pixopt convert animation.gif animation.webp -f webp
 ```
 
 ### Convert HEIC (iPhone) to JPEG
 
 ```bash
-optimg convert photo.heic photo.jpg
+pixopt convert photo.heic photo.jpg
 ```
 
 ### Optimize SVG
 
 ```bash
-optimg convert icon.svg icon.min.svg
+pixopt convert icon.svg icon.min.svg
 ```

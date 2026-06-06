@@ -7,8 +7,8 @@ from typing import Annotated
 
 import typer
 
-from optimg.cli.app import app, console
-from optimg.placeholder import generate_placeholder
+from pixopt.cli.app import app, console
+from pixopt.placeholder import generate_placeholder
 
 
 @app.command()

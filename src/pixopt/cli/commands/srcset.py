@@ -7,15 +7,15 @@ from typing import Annotated
 
 import typer
 
-from optimg.cli.app import app, console
-from optimg.cli.options import (
+from pixopt.cli.app import app, console
+from pixopt.cli.options import (
     LosslessOption,
     OptimizeOption,
     ProgressiveOption,
     QualityOption,
     StripOption,
 )
-from optimg.srcset_generator import generate_srcset_images
+from pixopt.srcset_generator import generate_srcset_images
 
 
 @app.command()

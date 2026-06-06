@@ -1,7 +1,7 @@
-"""optimg - Fast Python image optimizer. Resize, compress, convert, and generate responsive assets."""
+"""pixopt - Fast Python image optimizer. Resize, compress, convert, and generate responsive assets."""
 
-from optimg.models import OptimizationResult
-from optimg.optimizer import (
+from pixopt.models import OptimizationResult
+from pixopt.optimizer import (
     change_extension,
     convert_to_favicon,
     optimize_directory,
