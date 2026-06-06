@@ -20,3 +20,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Animated GIF to animated WEBP conversion.
 - Pure-Python SVG minification.
 - HEIC/HEIF support via `pillow-heif`.
+- GitHub Actions workflows for CI, release (PyPI), and documentation.
