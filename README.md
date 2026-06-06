@@ -235,7 +235,7 @@ for r in results:
 Install in development mode:
 
 ```bash
-git clone https://github.com/yourusername/pixopt.git
+git clone https://github.com/MathiasPaulenko/pixopt.git
 cd pixopt
 pip install -e ".[dev]"
 ```

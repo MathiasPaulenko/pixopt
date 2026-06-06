@@ -1,6 +1,6 @@
 # Changelog
 
-See [CHANGELOG.md](https://github.com/yourusername/pixopt/blob/main/CHANGELOG.md) for the full changelog.
+See [CHANGELOG.md](https://github.com/MathiasPaulenko/pixopt/blob/main/CHANGELOG.md) for the full changelog.
 
 ## [Unreleased]
 

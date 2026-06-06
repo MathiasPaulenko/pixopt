@@ -2,12 +2,12 @@
 
 Thanks for your interest in contributing!
 
-See [CONTRIBUTING.md](https://github.com/yourusername/pixopt/blob/main/CONTRIBUTING.md) for the full guide.
+See [CONTRIBUTING.md](https://github.com/MathiasPaulenko/pixopt/blob/main/CONTRIBUTING.md) for the full guide.
 
 ## Quick setup
 
 ```bash
-git clone https://github.com/yourusername/pixopt.git
+git clone https://github.com/MathiasPaulenko/pixopt.git
 cd pixopt
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate

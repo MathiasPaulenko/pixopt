@@ -23,7 +23,7 @@ pip install pillow-heif
 ## From source
 
 ```bash
-git clone https://github.com/yourusername/pixopt.git
+git clone https://github.com/MathiasPaulenko/pixopt.git
 cd pixopt
 pip install -e ".[dev]"
 ```

@@ -6,7 +6,7 @@ Thanks for your interest in contributing!
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/pixopt.git
+   git clone https://github.com/MathiasPaulenko/pixopt.git
    cd pixopt
    ```
 
