@@ -5,6 +5,8 @@ site_author: pixopt contributors
 
 theme:
   name: material
+  logo: material/image-multiple
+  favicon: material/image-multiple
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -22,41 +24,74 @@ theme:
         name: Switch to light mode
   features:
     - navigation.instant
+    - navigation.instant.prefetch
     - navigation.tracking
     - navigation.sections
     - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - toc.follow
     - toc.integrate
     - search.suggest
     - search.highlight
+    - search.share
     - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.tooltips
+    - header.autohide
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/MathiasPaulenko/pixopt
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/pixopt/
+  version:
+    provider: mike
 
 repo_name: pixopt
 repo_url: https://github.com/MathiasPaulenko/pixopt
+edit_uri: blob/main/docs/
 
 copyright: Copyright &copy; 2026 pixopt contributors
 
 plugins:
-  - search
+  - search:
+      separator: '[\s\-,:!=\[\]()"/]+|\.(?!\w)|&[lg]t;|(?<!\w)\'\'{2,}'
   - mkdocstrings:
       handlers:
         python:
           paths: [src]
           options:
             docstring_style: google
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
             show_root_heading: true
-            show_source: true
+            show_root_full_path: false
+            show_object_full_path: false
+            show_category_heading: true
             show_if_no_docstring: true
+            show_signature_annotations: true
+            show_source: true
             members_order: source
             filters: ["!^_"]
+            heading_level: 2
 
 nav:
   - Home: index.md
-  - Installation: installation.md
-  - CLI Usage: cli.md
-  - Library Usage: library.md
+  - Getting Started:
+    - Installation: installation.md
+    - Quick Start: index.md#quick-start
+  - Usage:
+    - CLI Reference: cli.md
+    - Library Reference: library.md
   - API Reference: api.md
-  - Contributing: contributing.md
-  - Changelog: changelog.md
+  - Development:
+    - Contributing: contributing.md
+    - Changelog: changelog.md
 
 markdown_extensions:
   - admonition
@@ -70,6 +105,10 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.keys
   - tables
   - toc:
       permalink: true
+      title: On this page
