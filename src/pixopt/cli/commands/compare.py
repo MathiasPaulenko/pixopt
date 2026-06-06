@@ -39,7 +39,7 @@ def compare(
             help="Output HTML comparison file.",
             exists=False,
         ),
-    ] = Path("comparison.html"),  # type: ignore[assignment]
+    ] = Path("comparison.html"),
     width: WidthOption = None,
     height: HeightOption = None,
     quality: QualityOption = 85,

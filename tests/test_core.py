@@ -221,9 +221,11 @@ def test_generate_comparison_html(tmp_path: Path) -> None:
 
 
 def test_adaptive_quality_target_size(tmp_path: Path) -> None:
-    from pixopt.adaptive_quality import find_quality_for_target_size
-    from PIL import Image
     import random
+
+    from PIL import Image
+
+    from pixopt.adaptive_quality import find_quality_for_target_size
     src = tmp_path / "test.jpg"
     # Create a more complex image with noise so JPEG sizes vary widely
     img = Image.new("RGB", (800, 800))
@@ -315,8 +317,9 @@ def test_placeholder_blurhash(tmp_path: Path) -> None:
 
 
 def test_smart_format_photo(tmp_path: Path) -> None:
-    from pixopt.smart_format import detect_optimal_format
     import random
+
+    from pixopt.smart_format import detect_optimal_format
     src = tmp_path / "photo.jpg"
     img = Image.new("RGB", (400, 400))
     pixels = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))

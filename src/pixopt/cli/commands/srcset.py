@@ -43,7 +43,7 @@ def srcset(
             "-o",
             help="Directory where variants will be saved.",
         ),
-    ] = Path("./responsive"),  # type: ignore[assignment]
+    ] = Path("./responsive"),
     fmt: Annotated[
         str,
         typer.Option(
@@ -72,8 +72,10 @@ def srcset(
     try:
         widths = [int(w.strip()) for w in sizes.split(",") if w.strip()]
     except ValueError:
-        console.print("[bold red]Invalid --sizes value. Use comma-separated integers.[/bold red]")
-        raise typer.Exit(1)
+        console.print(
+            "[bold red]Invalid --sizes value. Use comma-separated integers.[/bold red]"
+        )
+        raise typer.Exit(1) from None
 
     if not widths:
         console.print("[bold red]No valid widths provided.[/bold red]")
@@ -98,7 +100,10 @@ def srcset(
     # Build srcset attribute string
     srcset_parts: list[str] = []
     for v in variants:
-        rel = v.output_path.relative_to(output_dir.parent) if v.output_path.is_relative_to(output_dir.parent) else v.output_path.name
+        if v.output_path.is_relative_to(output_dir.parent):
+            rel = str(v.output_path.relative_to(output_dir.parent))
+        else:
+            rel = v.output_path.name
         srcset_parts.append(f"{rel} {v.width}w")
 
     srcset_str = ", ".join(srcset_parts)

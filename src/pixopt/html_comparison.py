@@ -7,7 +7,6 @@ from pathlib import Path
 
 from PIL import Image
 
-
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -125,7 +124,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
   slider.addEventListener('touchstart', () => dragging = true, {{passive: true}});
   window.addEventListener('touchend', () => dragging = false);
-  window.addEventListener('touchmove', e => {{ if (dragging) update(e.touches[0].clientX); }}, {{passive: true}});
+  window.addEventListener('touchmove', e => {{ if (dragging) update(e.touches[0].clientX); }}, {{passive: true}});  # noqa: E501
 }})();
 </script>
 </body>

@@ -41,7 +41,7 @@ def batch(
             "-o",
             help="Output directory for all processed images.",
         ),
-    ] = Path("./optimized"),  # type: ignore[assignment]
+    ] = Path("./optimized"),
     width: WidthOption = None,
     height: HeightOption = None,
     quality: QualityOption = 85,

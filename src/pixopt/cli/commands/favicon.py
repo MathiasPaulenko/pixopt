@@ -28,12 +28,12 @@ def favicon(
         ),
     ] = None,
     sizes: Annotated[
-        list[int],
+        list[int] | None,
         typer.Option(
             "--size",
             help="Square sizes to include in the ICO.",
         ),
-    ] = [16, 32, 48, 64, 128, 256],
+    ] = None,
     keep_transparency: Annotated[
         bool,
         typer.Option(
@@ -46,7 +46,7 @@ def favicon(
     result = convert_to_favicon(
         source,
         output,
-        sizes=sizes,
+        sizes=sizes if sizes is not None else [16, 32, 48, 64, 128, 256],
         keep_transparency=keep_transparency,
     )
     _print_result(result)

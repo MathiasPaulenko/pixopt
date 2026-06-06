@@ -1,4 +1,5 @@
-"""pixopt - Fast Python image optimizer. Resize, compress, convert, and generate responsive assets."""
+"""pixopt - Fast Python image optimizer. Resize, compress, convert,
+and generate responsive assets."""
 
 from pixopt.models import OptimizationResult
 from pixopt.optimizer import (

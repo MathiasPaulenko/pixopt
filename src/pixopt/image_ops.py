@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 from typing import Any
 
-import piexif
+import piexif  # type: ignore[import-untyped]
 from PIL import Image
 from PIL.Image import Resampling
 
@@ -112,10 +113,8 @@ def strip_exif_post_process(path: Path, pillow_fmt: str) -> None:
     """Use piexif to aggressively strip remaining EXIF after Pillow save."""
     if pillow_fmt not in ("JPEG", "WEBP"):
         return
-    try:
+    with contextlib.suppress(Exception):
         piexif.remove(str(path))
-    except Exception:
-        pass
 
 
 def resolve_and_adjust_path(

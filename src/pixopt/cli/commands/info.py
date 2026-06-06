@@ -31,9 +31,8 @@ def info(
         console.print(f"[bold cyan]File size:[/bold cyan]  {_human_size(source.stat().st_size)}")
 
         if img.format == "JPEG":
-            console.print(
-                f"[bold cyan]Progressive:[/bold cyan] {'Yes' if img.info.get('progressive') else 'No'}"
-            )
+            prog = "Yes" if img.info.get("progressive") else "No"
+            console.print(f"[bold cyan]Progressive:[/bold cyan] {prog}")
 
         exif = img.getexif()
         if exif:

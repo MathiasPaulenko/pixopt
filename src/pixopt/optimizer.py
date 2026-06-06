@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import shutil
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 from PIL import Image
 from PIL.Image import Resampling
@@ -24,7 +24,7 @@ from pixopt.utils import discover_images
 
 # Register HEIC/HEIF support if pillow-heif is available
 try:
-    from pillow_heif import register_heif_opener
+    from pillow_heif import register_heif_opener  # type: ignore[import-untyped]
 
     register_heif_opener()
 except Exception:
@@ -137,8 +137,8 @@ def optimize_image(
                     lossless=lossless,
                 )
 
-            img = convert_mode(img, pillow_fmt)
-            img = resize_image(
+            img = convert_mode(img, pillow_fmt)  # type: ignore[assignment]
+            img = resize_image(  # type: ignore[assignment]
                 img,
                 max_width=max_width,
                 max_height=max_height,
@@ -154,7 +154,8 @@ def optimize_image(
                 strip_metadata=strip_metadata,
                 lossless=lossless,
             )
-            img = strip_metadata_pillow(img, pillow_fmt)
+            img = strip_metadata_pillow(img, pillow_fmt)  # type: ignore[assignment]
+
 
             output_path.parent.mkdir(parents=True, exist_ok=True)
             img.save(output_path, format=pillow_fmt, **save_kwargs)
@@ -232,7 +233,7 @@ def _optimize_animated_gif(
     """Convert an animated GIF to animated WEBP frame-by-frame."""
     try:
         frames: list[Image.Image] = []
-        for frame_idx in range(img.n_frames):
+        for frame_idx in range(img.n_frames):  # type: ignore[attr-defined]
             img.seek(frame_idx)
             frame = img.copy()
             frame = convert_mode(frame, pillow_fmt)
@@ -321,7 +322,7 @@ def optimize_directory(
             overwrite=(output_dir is None),
             backup_dir=backup_dir,
             min_size_bytes=min_size_bytes,
-            **kwargs,
+            **kwargs,  # type: ignore[arg-type]
         )
         results.append(result)
 
@@ -359,7 +360,7 @@ def change_extension(
         output_format=output_format,
         backup_dir=backup_dir,
         min_size_bytes=min_size_bytes,
-        **kwargs,
+        **kwargs,  # type: ignore[arg-type]
     )
 
 
@@ -404,10 +405,8 @@ def convert_to_favicon(
     try:
         with Image.open(source_path) as img:
             img.load()
-            if img.mode not in ("RGB", "RGBA"):
-                img = img.convert("RGBA")
-            elif img.mode == "RGB":
-                img = img.convert("RGBA")
+            if img.mode not in ("RGB", "RGBA") or img.mode == "RGB":
+                img = img.convert("RGBA")  # type: ignore[assignment]
 
             icons: list[Image.Image] = []
             for size in chosen_sizes:

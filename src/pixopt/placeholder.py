@@ -9,7 +9,6 @@ from typing import Literal
 
 from PIL import Image, ImageFilter
 
-
 PlaceholderType = Literal["color", "lqip", "blurhash"]
 
 
@@ -21,6 +20,8 @@ def extract_dominant_color(img: Image.Image) -> str:
     rgb = img.convert("RGB")
     # Average all pixels by resizing to 1x1 with high-quality filter
     pixel = rgb.resize((1, 1), Image.Resampling.LANCZOS).getpixel((0, 0))
+    if not isinstance(pixel, tuple):
+        return "#000000"
     return f"#{pixel[0]:02x}{pixel[1]:02x}{pixel[2]:02x}"
 
 
