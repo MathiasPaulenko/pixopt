@@ -53,10 +53,10 @@ pytest tests/ -v
 pytest tests/ -v --cov=pixopt --cov-report=term-missing
 
 # Run linter
-ruff check src tests
+ruff check pixopt tests
 
 # Run type checker
-mypy src
+mypy pixopt
 ```
 
 ### 4. Commit your changes

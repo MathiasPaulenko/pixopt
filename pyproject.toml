@@ -59,7 +59,7 @@ Changelog = "https://github.com/MathiasPaulenko/pixopt/blob/main/CHANGELOG.md"
 Issues = "https://github.com/MathiasPaulenko/pixopt/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/pixopt"]
+packages = ["pixopt"]
 
 [tool.ruff]
 target-version = "py310"
@@ -70,7 +70,7 @@ cache-dir = "output/.ruff_cache"
 select = ["E", "F", "I", "W", "UP", "B", "C4", "SIM"]
 
 [tool.ruff.lint.per-file-ignores]
-"src/pixopt/html_comparison.py" = ["E501"]
+"pixopt/html_comparison.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.10"
@@ -81,7 +81,7 @@ cache_dir = "output/.mypy_cache"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["."]
 cache_dir = "output/.pytest_cache"
 
 [tool.coverage.run]
@@ -92,7 +92,7 @@ directory = "output/htmlcov"
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
-version_variables = ["src/pixopt/__init__.py:__version__"]
+version_variables = ["pixopt/__init__.py:__version__"]
 build_command = "python -m build --outdir output/dist"
 upload_to_pypi = false
 upload_to_release = false

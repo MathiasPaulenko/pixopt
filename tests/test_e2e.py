@@ -16,7 +16,7 @@ def _run(*args: str, check: bool = False) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     current = env.get("PYTHONPATH", "")
     sep = os.pathsep
-    env["PYTHONPATH"] = f"{root / 'src'}{sep}{current}" if current else str(root / "src")
+    env["PYTHONPATH"] = f"{root}{sep}{current}" if current else str(root)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     return subprocess.run(
         [sys.executable, "-m", "pixopt.cli", *args],

@@ -32,9 +32,9 @@ pytest tests/ -v --cov=pixopt --cov-report=term-missing
 All changes should pass the configured linting, type checking and formatting checks:
 
 ```bash
-ruff check src tests
-ruff format src tests
-mypy src
+ruff check pixopt tests
+ruff format pixopt tests
+mypy pixopt
 ```
 
 ## Documentation
@@ -58,7 +58,7 @@ release workflow. Use prefixes such as `feat:`, `fix:`, `docs:`, `refactor:` or
 
 1. Fork the repository and create a feature branch.
 2. Make your changes, adding or updating tests where appropriate.
-3. Ensure `pytest`, `ruff check`, `mypy src`, and `mkdocs build --strict` all pass.
+3. Ensure `pytest`, `ruff check`, `mypy pixopt`, and `mkdocs build --strict` all pass.
 4. Update the documentation and `CHANGELOG.md` if needed.
 5. Submit a pull request with a clear description and link to any related issues.
 

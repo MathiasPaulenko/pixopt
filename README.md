@@ -469,8 +469,8 @@ pytest tests/ -v
 Run linters:
 
 ```bash
-ruff check src tests
-mypy src
+ruff check pixopt tests
+mypy pixopt
 ```
 
 Build documentation locally:
