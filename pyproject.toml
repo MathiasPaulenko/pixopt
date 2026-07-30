@@ -95,7 +95,8 @@ version_toml = ["pyproject.toml:project.version"]
 version_variables = ["src/pixopt/__init__.py:__version__"]
 build_command = "python -m build --outdir output/dist"
 upload_to_pypi = false
-upload_to_release = true
+upload_to_release = false
+vcs_release = false
 commit_author = "github-actions <actions@github.com>"
 commit_message = "chore(release): bump version to {{version}} [skip ci]"
 
