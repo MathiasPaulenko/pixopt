@@ -20,7 +20,7 @@ from pixopt.models import OptimizationResult, OutputFormat
 
 @pytest.fixture
 def runner() -> CliRunner:
-    return CliRunner(mix_stderr=False)
+    return CliRunner()
 
 
 @pytest.fixture
@@ -181,8 +181,7 @@ def test_favicon_command_invalid_size(runner: CliRunner, tmp_path: Path) -> None
     Image.new("RGBA", (256, 256), color=(255, 0, 0, 128)).save(src)
     out = tmp_path / "favicon.ico"
     result = runner.invoke(app, ["favicon", str(src), str(out), "--size", "0"])
-    combined = (result.stdout or "") + (result.stderr or "")
-    assert "favicon sizes" in combined
+    assert "favicon sizes" in result.output
 
 
 def test_favicon_command_missing_source(runner: CliRunner, tmp_path: Path) -> None:
