@@ -8,22 +8,23 @@ version = "1.0.7"
 description = "Fast Python image optimizer. Resize, compress, convert, and generate responsive assets."
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     {name = "Mathias Paulenko Echeverz", email = "mathias.paulenko@outlook.com"}
 ]
 keywords = ["image", "optimization", "compression", "webp", "jpeg", "png", "cli"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Multimedia :: Graphics",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
 dependencies = [
     "Pillow>=10.0.0",
@@ -53,14 +54,17 @@ pixopt = "pixopt.cli:app"
 [project.urls]
 Homepage = "https://github.com/MathiasPaulenko/pixopt"
 Repository = "https://github.com/MathiasPaulenko/pixopt"
+Documentation = "https://mathiaspaulenko.github.io/pixopt/"
+Changelog = "https://github.com/MathiasPaulenko/pixopt/blob/main/CHANGELOG.md"
 Issues = "https://github.com/MathiasPaulenko/pixopt/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pixopt"]
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 100
+cache-dir = "output/.ruff_cache"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W", "UP", "B", "C4", "SIM"]
@@ -69,19 +73,27 @@ select = ["E", "F", "I", "W", "UP", "B", "C4", "SIM"]
 "src/pixopt/html_comparison.py" = ["E501"]
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
+cache_dir = "output/.mypy_cache"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+cache_dir = "output/.pytest_cache"
+
+[tool.coverage.run]
+data_file = "output/.coverage"
+
+[tool.coverage.html]
+directory = "output/htmlcov"
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
 version_variables = ["src/pixopt/__init__.py:__version__"]
-build_command = "python -m build"
+build_command = "python -m build --outdir output/dist"
 upload_to_pypi = false
 upload_to_release = true
 commit_author = "github-actions <actions@github.com>"

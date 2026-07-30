@@ -1,3 +1,4 @@
+output/
 __pycache__/
 *.py[cod]
 *$py.class
@@ -32,6 +33,7 @@ venv.bak/
 .dmypy.json
 dmypy.json
 .pytest_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 *.log
@@ -46,4 +48,5 @@ Thumbs.db
 *.gif
 *.tiff
 site/
+ref/
 !tests/fixtures/
