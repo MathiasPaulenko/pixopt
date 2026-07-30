@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issue
+    url: https://github.com/MathiasPaulenko/pixopt/security/advisories/new
+    about: Please report security vulnerabilities privately.
+  - name: Question or discussion
+    url: https://github.com/MathiasPaulenko/pixopt/discussions
+    about: Ask questions and discuss ideas in GitHub Discussions.

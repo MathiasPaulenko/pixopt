@@ -141,3 +141,31 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_TOKEN }}
+
+  release:
+    needs: [publish-pypi, bump]
+    if: needs.bump.outputs.tag != '' && needs.publish-pypi.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bump.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
+        run: |
+          gh release create "${{ needs.bump.outputs.tag }}" \
+            --title "${{ needs.bump.outputs.tag }}" \
+            --generate-notes \
+            dist/*
