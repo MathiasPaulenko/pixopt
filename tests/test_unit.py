@@ -10,12 +10,6 @@ from PIL import Image
 from pixopt.adaptive_quality import find_quality_for_target_size
 from pixopt.format_resolver import resolve_output_format
 from pixopt.html_comparison import generate_comparison_html
-from pixopt.optimizer import (
-    change_extension,
-    convert_to_favicon,
-    optimize_directory,
-    optimize_image,
-)
 from pixopt.image_ops import (
     _pixel_data,
     build_save_kwargs,
@@ -26,8 +20,13 @@ from pixopt.image_ops import (
     strip_metadata_pillow,
 )
 from pixopt.models import OptimizationResult, OutputFormat, _human_readable_size
+from pixopt.optimizer import (
+    change_extension,
+    convert_to_favicon,
+    optimize_directory,
+    optimize_image,
+)
 from pixopt.placeholder import (
-    PlaceholderType,
     extract_dominant_color,
     generate_blurhash,
     generate_lqip_datauri,
@@ -420,7 +419,9 @@ def test_resolve_output_format_auto_no_suffix(photo_image: Image.Image, tmp_path
     assert fmt == "JPEG"
 
 
-def test_resolve_output_format_auto_unknown_suffix(photo_image: Image.Image, tmp_path: Path) -> None:
+def test_resolve_output_format_auto_unknown_suffix(
+    photo_image: Image.Image, tmp_path: Path
+) -> None:
     ext, fmt = resolve_output_format(photo_image, tmp_path / "file.xyz", OutputFormat.AUTO)
     assert ext == ".jpg"
     assert fmt == "JPEG"

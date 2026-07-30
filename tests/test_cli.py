@@ -5,8 +5,8 @@ from __future__ import annotations
 import io
 import sys
 import webbrowser
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 import pytest
 from PIL import Image
@@ -15,7 +15,7 @@ from typer.testing import CliRunner
 
 from pixopt.cli import app
 from pixopt.cli import output as output_module
-from pixopt.models import OptimizationResult, OutputFormat
+from pixopt.models import OptimizationResult
 
 
 @pytest.fixture
@@ -209,7 +209,10 @@ def test_placeholder_blurhash(runner: CliRunner, sample_image: Path) -> None:
 
 def test_placeholder_output_file(runner: CliRunner, sample_image: Path, tmp_path: Path) -> None:
     out = tmp_path / "blurhash.txt"
-    result = runner.invoke(app, ["placeholder", str(sample_image), "--type", "blurhash", "-o", str(out)])
+    result = runner.invoke(
+        app,
+        ["placeholder", str(sample_image), "--type", "blurhash", "-o", str(out)],
+    )
     assert result.exit_code == 0
     assert out.exists()
 
@@ -338,7 +341,12 @@ def test_print_summary_empty(_capture_console: Console) -> None:
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="webbrowser open is not testable")
-def test_compare_open_browser(runner: CliRunner, sample_image: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_compare_open_browser(
+    runner: CliRunner,
+    sample_image: Path,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     html = tmp_path / "compare.html"
     opened: list[str] = []
     monkeypatch.setattr(webbrowser, "open", opened.append)
@@ -396,7 +404,11 @@ def test_srcset_no_variants(runner: CliRunner, sample_image: Path, tmp_path: Pat
     assert result.exit_code != 0
 
 
-def test_srcset_html_outside_output_dir(runner: CliRunner, sample_image: Path, tmp_path: Path) -> None:
+def test_srcset_html_outside_output_dir(
+    runner: CliRunner,
+    sample_image: Path,
+    tmp_path: Path,
+) -> None:
     out = tmp_path / "responsive"
     html_dir = tmp_path / "html"
     html_dir.mkdir()
