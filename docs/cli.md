@@ -9,7 +9,7 @@ The CLI is built with [Typer](https://typer.tiangolo.com/) and provides an intui
 These options are available for most commands that process images:
 
 | Option | Short | Description | Default |
-|--------|-------|-------------|---------|
+| ------ | ----- | ----------- | ------- |
 | `--quality` | `-q` | JPEG/WEBP quality (1–100) | `85` |
 | `--width` | `-w` | Maximum width in pixels | — |
 | `--height` | `-h` | Maximum height in pixels | — |
@@ -17,7 +17,7 @@ These options are available for most commands that process images:
 | `--strip` | `-s` | Remove metadata (EXIF, ICC, etc.) | `True` |
 | `--progressive` | — | Progressive JPEG encoding | `True` |
 | `--recursive` | `-r` | Process directories recursively | `False` |
-| `--overwrite` | — | Overwrite source files in place | `False` |
+| `--overwrite` | — | Overwrite existing output files | `False` |
 | `--lossless` | — | Lossless PNG/WEBP compression | `False` |
 | `--target-size` | — | Target file size in KB (adaptive quality) | — |
 | `--smart-format` | — | Auto-detect the most efficient output format | `False` |
@@ -66,7 +66,7 @@ pixopt optimize photo.jpg photo_optimized.jpg --smart-format
 **Command-specific options:**
 
 | Option | Description |
-|--------|-------------|
+| ------ | ----------- |
 | `source` | Input file or directory |
 | `destination` | Output file or directory |
 
@@ -95,7 +95,7 @@ pixopt batch photo.jpg icon.png logo.svg -o ./assets --smart-format --quality 90
 **Command-specific options:**
 
 | Option | Short | Description |
-|--------|-------|-------------|
+| ------ | ----- | ----------- |
 | `-o, --output-dir` | `-o` | Output directory (required) |
 
 ---
@@ -160,7 +160,7 @@ pixopt favicon logo.png favicon.ico --size 16 --size 32 --size 48 --size 64
 **Command-specific options:**
 
 | Option | Description |
-|--------|-------------|
+| ------ | ----------- |
 | `--size` | Favicon size to include (can be repeated) |
 
 ---
@@ -183,7 +183,7 @@ pixopt info photo.jpg
 
 **Sample output:**
 
-```
+```text
 File: photo.jpg
 Dimensions: 4032 x 3024
 Format: JPEG
@@ -216,7 +216,7 @@ pixopt compare photo.jpg comparison.html --quality 70 --width 1200
 **Command-specific options:**
 
 | Option | Description |
-|--------|-------------|
+| ------ | ----------- |
 | `--open` | Open the generated HTML in the default browser |
 
 ---
@@ -247,7 +247,7 @@ pixopt srcset hero.jpg --sizes 400,800,1200 --quality 80 --output-dir ./responsi
 **Command-specific options:**
 
 | Option | Description |
-|--------|-------------|
+| ------ | ----------- |
 | `--sizes` | Comma-separated list of widths |
 | `--output-dir` | Directory to write responsive images |
 | `--html` | Path to write the HTML srcset snippet |
@@ -283,7 +283,7 @@ pixopt placeholder photo.jpg --type blurhash -o blurhash.txt
 **Command-specific options:**
 
 | Option | Description |
-|--------|-------------|
+| ------ | ----------- |
 | `--type` | Placeholder type: `color`, `lqip`, `blurhash` |
 | `-o, --output` | Write output to file instead of stdout |
 

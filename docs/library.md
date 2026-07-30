@@ -104,22 +104,30 @@ result = optimize_image(
 Let pixopt find the right quality setting to hit a target file size. This uses binary search under the hood for fast convergence:
 
 ```python
+from PIL import Image
 from pixopt import optimize_image
+from pixopt.adaptive_quality import find_quality_for_target_size
 from pixopt.models import OutputFormat
+
+with Image.open("photo.jpg") as img:
+    img.load()
+    quality = find_quality_for_target_size(
+        img, "JPEG", target_size=50 * 1024
+    )
 
 result = optimize_image(
     "photo.jpg",
     "photo_optimized.jpg",
     output_format=OutputFormat.JPEG,
-    target_size=50,  # Target: 50 KB
+    quality=quality,
 )
 
-print(f"Achieved quality: {result.quality}")
-print(f"Final size: {result.optimized_size}")
+print(f"Achieved quality: {quality}")
+print(f"Final size: {result.human_optimized_size}")
 ```
 
 !!! note
-    `target_size` is specified in **kilobytes (KB)**. The algorithm searches for the highest quality that keeps the file at or below the target size.
+    `target_size` in `find_quality_for_target_size` is specified in **bytes**. The algorithm searches for the highest quality that keeps the file at or below the target size.
 
 ---
 
@@ -284,24 +292,26 @@ Combine multiple features into custom automation scripts:
 
 ```python
 from pathlib import Path
-from pixopt import optimize_directory
-from pixopt.models import OutputFormat
+from pixopt import optimize_image
 from pixopt.smart_format import detect_optimal_format
 
 src_dir = Path("./uploads")
 out_dir = Path("./optimized")
 
-# Process all uploads with smart format detection
-results = optimize_directory(
-    src_dir,
-    out_dir,
-    recursive=True,
-    max_width=1600,
-    quality=85,
-    smart_format=True,
-    strip_metadata=True,
-    backup_dir="./uploads_backup",
-)
+# Process all uploads with per-file smart format detection
+results = [
+    optimize_image(
+        src,
+        out_dir / src.relative_to(src_dir),
+        max_width=1600,
+        quality=85,
+        output_format=detect_optimal_format(src),
+        strip_metadata=True,
+        backup_dir="./uploads_backup",
+    )
+    for src in src_dir.rglob("*")
+    if src.is_file()
+]
 
 # Report summary
 total_saved = sum(r.savings_percent for r in results if r.success)

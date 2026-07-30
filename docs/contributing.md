@@ -7,14 +7,14 @@ Thank you for your interest in contributing to **pixopt**! We welcome bug report
 ## Quick setup
 
 1. Fork the repository on GitHub.
-2. Clone your fork locally:
+1. Clone your fork locally:
 
-```bash
-git clone https://github.com/YOUR_USERNAME/pixopt.git
-cd pixopt
-```
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/pixopt.git
+    cd pixopt
+    ```
 
-3. Create a virtual environment and install in development mode:
+1. Create a virtual environment and install in development mode:
 
 ```bash
 python -m venv .venv
@@ -50,7 +50,7 @@ Before submitting, ensure everything passes:
 pytest tests/ -v
 
 # Run tests with coverage
-pytest tests/ -v --cov=src/pixopt --cov-report=term-missing
+pytest tests/ -v --cov=pixopt --cov-report=term-missing
 
 # Run linter
 ruff check src tests
@@ -64,7 +64,7 @@ mypy src
 We use **Conventional Commits** to drive our automated semantic versioning. Please follow this format:
 
 | Prefix | Use when... | Version bump |
-|--------|-------------|--------------|
+| ------ | ----------- | ------------ |
 | `feat:` | Adding a new feature | MINOR |
 | `fix:` | Fixing a bug | PATCH |
 | `docs:` | Documentation-only changes | None |

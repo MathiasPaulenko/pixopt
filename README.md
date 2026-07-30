@@ -1,22 +1,16 @@
 # pixopt
 
-<p align="center">
-  <em>A powerful, easy-to-use Python library and CLI tool for optimizing images for web and storage.</em>
-</p>
+*A powerful, easy-to-use Python library and CLI tool for optimizing images for web and storage.*
 
-<p align="center">
-  <a href="https://pypi.org/project/pixopt/"><img src="https://img.shields.io/pypi/v/pixopt" alt="PyPI version"></a>
-  <a href="https://pypi.org/project/pixopt/"><img src="https://img.shields.io/pypi/pyversions/pixopt" alt="Python versions"></a>
-  <a href="https://github.com/MathiasPaulenko/pixopt/actions/workflows/bump-version.yml"><img src="https://img.shields.io/github/actions/workflow/status/MathiasPaulenko/pixopt/bump-version.yml?label=CI" alt="CI status"></a>
-  <a href="https://codecov.io/gh/MathiasPaulenko/pixopt"><img src="https://img.shields.io/codecov/c/github/MathiasPaulenko/pixopt" alt="Coverage"></a>
-  <a href="https://github.com/MathiasPaulenko/pixopt/blob/main/LICENSE"><img src="https://img.shields.io/github/license/MathiasPaulenko/pixopt" alt="License"></a>
-</p>
+[![PyPI version](https://img.shields.io/pypi/v/pixopt)](https://pypi.org/project/pixopt/)
+[![Python versions](https://img.shields.io/pypi/pyversions/pixopt)](https://pypi.org/project/pixopt/)
+[![CI status](https://img.shields.io/github/actions/workflow/status/MathiasPaulenko/pixopt/bump-version.yml?label=CI)](https://github.com/MathiasPaulenko/pixopt/actions/workflows/bump-version.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/MathiasPaulenko/pixopt)](https://codecov.io/gh/MathiasPaulenko/pixopt)
+[![License](https://img.shields.io/github/license/MathiasPaulenko/pixopt)](https://github.com/MathiasPaulenko/pixopt/blob/main/LICENSE)
 
-<p align="center">
-  <a href="https://mathiaspaulenko.github.io/pixopt/">📖 Documentation</a> •
-  <a href="https://pypi.org/project/pixopt/">📦 PyPI</a> •
-  <a href="https://github.com/MathiasPaulenko/pixopt/releases">🏷️ Releases</a>
-</p>
+[📖 Documentation](https://mathiaspaulenko.github.io/pixopt/) •
+[📦 PyPI](https://pypi.org/project/pixopt/) •
+[🏷️ Releases](https://github.com/MathiasPaulenko/pixopt/releases)
 
 ---
 
@@ -107,28 +101,28 @@ pixopt --help
 
 ## Quick Start
 
-=== "CLI"
+### CLI
 
-    ```bash
-    pip install pixopt
-    pixopt optimize photo.jpg --quality 80 --width 1200
-    ```
+```bash
+pip install pixopt
+pixopt optimize photo.jpg --quality 80 --width 1200
+```
 
-=== "Library"
+### Library
 
-    ```python
-    from pixopt import optimize_image
-    from pixopt.models import OutputFormat
+```python
+from pixopt import optimize_image
+from pixopt.models import OutputFormat
 
-    result = optimize_image(
-        "photo.jpg",
-        "photo_optimized.webp",
-        max_width=1200,
-        quality=80,
-        output_format=OutputFormat.WEBP,
-    )
-    print(f"Saved {result.savings_percent:.1f}%")
-    ```
+result = optimize_image(
+    "photo.jpg",
+    "photo_optimized.webp",
+    max_width=1200,
+    quality=80,
+    output_format=OutputFormat.WEBP,
+)
+print(f"Saved {result.savings_percent:.1f}%")
+```
 
 ---
 
@@ -211,7 +205,7 @@ pixopt placeholder photo.jpg --type blurhash -o blurhash.txt
 ### Global Options
 
 | Option | Short | Description | Default |
-|--------|-------|-------------|---------|
+| ------ | ----- | ----------- | ------- |
 | `--quality` | `-q` | JPEG/WEBP quality (1-100) | `85` |
 | `--width` | `-w` | Maximum width in pixels | — |
 | `--height` | `-h` | Maximum height in pixels | — |
@@ -234,13 +228,13 @@ pixopt placeholder photo.jpg --type blurhash -o blurhash.txt
 pixopt convert icon.png icon.webp --lossless -f webp
 ```
 
-#### Adaptive quality (target file size)
+#### Target a specific file size
 
 ```bash
 pixopt optimize photo.jpg --target-size 50
 ```
 
-#### Smart format detection
+#### Auto-detect the output format
 
 ```bash
 pixopt optimize photo.jpg --smart-format
@@ -352,7 +346,7 @@ result = optimize_image(
 )
 ```
 
-### Adaptive quality (target file size)
+### Adaptive quality
 
 ```python
 from pixopt import optimize_image

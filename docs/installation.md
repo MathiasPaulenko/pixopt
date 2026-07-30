@@ -1,6 +1,6 @@
 # Installation
 
-pixopt requires **Python 3.9 or newer**.
+pixopt requires **Python 3.10 or newer**.
 
 ## From PyPI (recommended)
 
@@ -10,18 +10,12 @@ pip install pixopt
 
 This installs the core package with Pillow, Typer, Rich, and piexif.
 
-## With HEIC/HEIF support
+## HEIC/HEIF support
 
-If you need to process iPhone photos (HEIC/HEIF), install the optional dependency:
-
-```bash
-pip install pixopt pillow-heif
-```
-
-Or install the extra directly:
+HEIC/HEIF support is included out of the box because `pillow-heif` is a core dependency.
 
 ```bash
-pip install pillow-heif
+pip install pixopt
 ```
 
 !!! note
