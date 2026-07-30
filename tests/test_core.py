@@ -129,7 +129,7 @@ def test_optimize_svg(tmp_path: Path) -> None:
     raw = (
         '<?xml version="1.0"?>\n'
         '<!-- comment -->\n'
-        '<svg  width="100"  height="100"   fill="black" >\n'
+        '<svg  width="100"  height="100"   fill="black"  opacity="1" >\n'
         '  <rect x="10.123456" y="20.999999" width="50" height="50" />\n'
         '</svg>'
     )
@@ -142,7 +142,8 @@ def test_optimize_svg(tmp_path: Path) -> None:
     assert out.stat().st_size < src.stat().st_size
     optimized = out.read_text(encoding="utf-8")
     assert "comment" not in optimized
-    assert 'fill="black"' not in optimized
+    assert 'fill="black"' in optimized  # inherited defaults must not be removed
+    assert 'opacity="1"' not in optimized  # non-inherited default removed
     assert "10.123" in optimized  # rounded
 
 

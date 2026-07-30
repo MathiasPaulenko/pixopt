@@ -1,0 +1,7 @@
+"""pytest configuration: keep bytecode out of the source tree."""
+
+from __future__ import annotations
+
+import sys
+
+sys.dont_write_bytecode = True
