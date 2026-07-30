@@ -15,7 +15,7 @@ from pixopt.placeholder import PlaceholderType, generate_placeholder
 from pixopt.smart_format import detect_optimal_format
 from pixopt.srcset_generator import SrcsetImage, generate_srcset_images
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __all__ = [
     "OutputFormat",
     "PlaceholderType",
