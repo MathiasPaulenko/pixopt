@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from html import escape
 from pathlib import Path
 from typing import Annotated
+from urllib.parse import quote
 
 import typer
 
@@ -43,7 +45,7 @@ def srcset(
             "-o",
             help="Directory where variants will be saved.",
         ),
-    ] = Path("./responsive"),
+    ] = Path("output/responsive"),
     fmt: Annotated[
         str,
         typer.Option(
@@ -67,13 +69,17 @@ def srcset(
 ) -> None:
     """Generate responsive image variants and an optional HTML srcset snippet."""
     output_dir = output_dir.resolve()
-    output_dir.mkdir(parents=True, exist_ok=True)
+
+    valid_formats = {"webp", "jpeg", "png", "avif"}
+    if fmt.lower() not in valid_formats:
+        console.print("[bold red]Invalid --format. Use: webp, jpeg, png, avif.[/bold red]")
+        raise typer.Exit(1)
 
     try:
         widths = [int(w.strip()) for w in sizes.split(",") if w.strip()]
     except ValueError:
         console.print(
-            "[bold red]Invalid --sizes value. Use comma-separated integers.[/bold red]"
+            "[bold red]Invalid --sizes value. Use comma-separated integers.[/bold red]",
         )
         raise typer.Exit(1) from None
 
@@ -97,20 +103,26 @@ def srcset(
         console.print("[bold red]No variants generated.[/bold red]")
         raise typer.Exit(1)
 
-    # Build srcset attribute string
+    # Build srcset attribute string relative to the HTML output location.
+    html_parent = html.resolve().parent if html is not None else output_dir.parent
+
+    def _html_src(path: Path) -> str:
+        if path.is_relative_to(html_parent):
+            raw = path.relative_to(html_parent).as_posix()
+        else:
+            raw = path.as_posix()
+        return escape(quote(raw, safe="/"))
+
     srcset_parts: list[str] = []
     for v in variants:
-        if v.output_path.is_relative_to(output_dir.parent):
-            rel = str(v.output_path.relative_to(output_dir.parent))
-        else:
-            rel = v.output_path.name
-        srcset_parts.append(f"{rel} {v.width}w")
+        srcset_parts.append(f"{_html_src(v.output_path)} {v.width}w")
 
     srcset_str = ", ".join(srcset_parts)
     largest = variants[-1]
+    src = _html_src(largest.output_path)
 
     html_snippet = (
-        f'<img src="{largest.output_path.name}"\n'
+        f'<img src="{src}"\n'
         f'     srcset="{srcset_str}"\n'
         f'     sizes="(max-width: {largest.width}px) 100vw, {largest.width}px"\n'
         f'     alt=""\n'

@@ -7,8 +7,11 @@ from pathlib import Path
 
 from PIL import Image
 
+from pixopt.constants import FORMAT_MAP, FORMAT_TO_EXT
 from pixopt.models import OutputFormat
 from pixopt.optimizer import optimize_image
+
+__all__ = ["SrcsetImage", "generate_srcset_images"]
 
 
 @dataclass(frozen=True)
@@ -23,7 +26,7 @@ class SrcsetImage:
 def _resolve_output_format(fmt_str: str) -> OutputFormat:
     fmt_upper = fmt_str.upper()
     for member in OutputFormat:
-        if member.name == fmt_upper:
+        if member.name == fmt_upper and member in FORMAT_MAP:
             return member
     return OutputFormat.WEBP
 
@@ -56,6 +59,7 @@ def generate_srcset_images(
 
     Returns:
         List of SrcsetImage entries, sorted by width ascending.
+
     """
     source_path = Path(source)
     out_dir = Path(output_dir)
@@ -64,18 +68,18 @@ def generate_srcset_images(
     fmt = _resolve_output_format(output_format)
     results: list[SrcsetImage] = []
 
+    pillow_fmt = FORMAT_MAP[fmt]
+    ext = FORMAT_TO_EXT[pillow_fmt]
+
     with Image.open(source_path) as img:
         img.load()
         orig_width = img.width
-        ext = output_format.lower()
-        if ext == "jpeg":
-            ext = "jpg"
 
-        for target_width in sorted(set(widths)):
+        for target_width in sorted({w for w in widths if w > 0}):
             if target_width > orig_width:
                 continue
 
-            suffix = f"-{target_width}w.{ext}"
+            suffix = f"-{target_width}w{ext}"
             out_path = out_dir / (source_path.stem + suffix)
 
             result = optimize_image(
@@ -94,9 +98,9 @@ def generate_srcset_images(
                 results.append(
                     SrcsetImage(
                         width=result.width,
-                        output_path=out_path,
+                        output_path=result.output_path,
                         size_bytes=result.optimized_size,
-                    )
+                    ),
                 )
 
     return results

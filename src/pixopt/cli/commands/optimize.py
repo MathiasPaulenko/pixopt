@@ -1,3 +1,5 @@
+"""Optimize command: resize, compress and convert images."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -6,6 +8,7 @@ from typing import Annotated
 import typer
 from PIL import Image
 
+from pixopt._units import BYTES_PER_KB
 from pixopt.adaptive_quality import find_quality_for_target_size
 from pixopt.cli.app import app, console
 from pixopt.cli.options import (
@@ -52,7 +55,7 @@ def _resolve_quality(
         return find_quality_for_target_size(
             img,
             pillow_fmt,
-            target_size * 1024,
+            target_size * BYTES_PER_KB,
             max_width=width,
             max_height=height,
             strip_metadata=strip,

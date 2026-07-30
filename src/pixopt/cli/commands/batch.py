@@ -1,3 +1,5 @@
+"""Batch command: optimize multiple specific image files."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -20,7 +22,7 @@ from pixopt.cli.options import (
     WidthOption,
 )
 from pixopt.cli.output import _print_summary
-from pixopt.models import OutputFormat
+from pixopt.models import OptimizationResult, OutputFormat
 from pixopt.optimizer import optimize_image
 
 
@@ -59,7 +61,7 @@ def batch(
 
     min_bytes = min_size * 1024 if min_size is not None else None
 
-    results: list[object] = []
+    results: list[OptimizationResult] = []
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
@@ -87,4 +89,4 @@ def batch(
             results.append(result)
             progress.advance(task)
 
-    _print_summary(results)  # type: ignore[arg-type]
+    _print_summary(results)

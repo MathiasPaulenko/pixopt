@@ -9,6 +9,16 @@ from typing import Literal
 
 from PIL import Image, ImageFilter
 
+from pixopt._units import MAX_QUALITY, MIN_QUALITY
+
+__all__ = [
+    "PlaceholderType",
+    "extract_dominant_color",
+    "generate_blurhash",
+    "generate_lqip_datauri",
+    "generate_placeholder",
+]
+
 PlaceholderType = Literal["color", "lqip", "blurhash"]
 
 
@@ -35,7 +45,15 @@ def generate_lqip_datauri(img: Image.Image, *, size: int = 32, quality: int = 20
 
     Returns:
         A base64 data URI string like 'data:image/jpeg;base64,/9j/4AAQ...'.
+
     """
+    if size <= 0:
+        raise ValueError(f"size must be positive, got {size}")
+    if not MIN_QUALITY <= quality <= MAX_QUALITY:
+        raise ValueError(
+            f"quality must be between {MIN_QUALITY} and {MAX_QUALITY}, got {quality}",
+        )
+
     thumb = img.copy()
     thumb = thumb.convert("RGB")
     thumb.thumbnail((size, size), Image.Resampling.LANCZOS)
@@ -71,7 +89,14 @@ def generate_blurhash(img: Image.Image, *, components_x: int = 4, components_y: 
 
     Returns:
         A short blurhash-like string.
+
     """
+    if components_x <= 0 or components_y <= 0:
+        raise ValueError(
+            f"components_x and components_y must be positive, "
+            f"got {components_x!r} and {components_y!r}",
+        )
+
     rgb = img.convert("RGB")
     w, h = rgb.size
     cell_w = max(1, w // components_x)
@@ -120,7 +145,13 @@ def generate_placeholder(
 
     Returns:
         A CSS color string, base64 data URI, or blurhash string.
+
     """
+    if placeholder_type not in ("color", "lqip", "blurhash"):
+        raise ValueError(
+            f"placeholder_type must be 'color', 'lqip' or 'blurhash', got {placeholder_type!r}",
+        )
+
     with Image.open(image_path) as img:
         img.load()
         if placeholder_type == "color":

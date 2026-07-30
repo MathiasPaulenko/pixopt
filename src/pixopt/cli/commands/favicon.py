@@ -1,3 +1,5 @@
+"""Favicon command: generate multi-resolution ICO files."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -7,6 +9,7 @@ import typer
 
 from pixopt.cli.app import app
 from pixopt.cli.output import _print_result
+from pixopt.constants import DEFAULT_FAVICON_SIZES
 from pixopt.optimizer import convert_to_favicon
 
 
@@ -46,7 +49,7 @@ def favicon(
     result = convert_to_favicon(
         source,
         output,
-        sizes=sizes if sizes is not None else [16, 32, 48, 64, 128, 256],
+        sizes=sizes if sizes is not None else DEFAULT_FAVICON_SIZES.copy(),
         keep_transparency=keep_transparency,
     )
     _print_result(result)

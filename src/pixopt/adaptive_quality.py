@@ -6,7 +6,10 @@ from io import BytesIO
 
 from PIL import Image
 
+from pixopt._units import MAX_QUALITY, MIN_QUALITY
 from pixopt.image_ops import build_save_kwargs, convert_mode, resize_image
+
+__all__ = ["find_quality_for_target_size"]
 
 
 def find_quality_for_target_size(
@@ -50,9 +53,31 @@ def find_quality_for_target_size(
 
     Returns:
         Quality integer (1-100).
+
     """
     if pillow_fmt not in ("JPEG", "WEBP"):
         return 85
+
+    if target_size <= 0:
+        raise ValueError(f"target_size must be a positive integer, got {target_size}")
+    if not MIN_QUALITY <= min_quality <= MAX_QUALITY:
+        raise ValueError(
+            f"min_quality must be between {MIN_QUALITY} and {MAX_QUALITY}, "
+            f"got {min_quality}",
+        )
+    if not MIN_QUALITY <= max_quality <= MAX_QUALITY:
+        raise ValueError(
+            f"max_quality must be between {MIN_QUALITY} and {MAX_QUALITY}, "
+            f"got {max_quality}",
+        )
+    if min_quality > max_quality:
+        raise ValueError(
+            f"min_quality ({min_quality}) cannot exceed max_quality ({max_quality})",
+        )
+    if tolerance < 0:
+        raise ValueError(f"tolerance must be non-negative, got {tolerance}")
+    if max_iterations <= 0:
+        raise ValueError(f"max_iterations must be positive, got {max_iterations}")
 
     working = img.copy()
     working = convert_mode(working, pillow_fmt)

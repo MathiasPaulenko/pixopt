@@ -4,22 +4,23 @@ from __future__ import annotations
 
 from rich.table import Table
 
+from pixopt._units import BYTES_PER_KB, BYTES_PER_MB, PERCENT
 from pixopt.cli.app import console
 from pixopt.models import OptimizationResult
 
 
 def _human_size(size_bytes: int) -> str:
-    if size_bytes < 1024:
+    if size_bytes < BYTES_PER_KB:
         return f"{size_bytes} B"
-    if size_bytes < 1024 * 1024:
-        return f"{size_bytes / 1024:.2f} KB"
-    return f"{size_bytes / (1024 * 1024):.2f} MB"
+    if size_bytes < BYTES_PER_MB:
+        return f"{size_bytes / BYTES_PER_KB:.2f} KB"
+    return f"{size_bytes / BYTES_PER_MB:.2f} MB"
 
 
 def _print_result(result: OptimizationResult) -> None:
     if not result.success:
         console.print(
-            f"[bold red]Error optimizing {result.source_path.name}:[/bold red] {result.error}"
+            f"[bold red]Error optimizing {result.source_path.name}:[/bold red] {result.error}",
         )
         return
 
@@ -66,8 +67,8 @@ def _print_summary(results: list[OptimizationResult]) -> None:
 
     if total_orig > 0:
         total_savings = total_orig - total_opt
-        percent = total_savings / total_orig * 100
+        percent = total_savings / total_orig * PERCENT
         console.print(
             f"\n[bold]Total:[/bold] {successes}/{len(results)} succeeded. "
-            f"Saved {_human_size(total_savings)} ({percent:.1f}%)"
+            f"Saved {_human_size(total_savings)} ({percent:.1f}%)",
         )

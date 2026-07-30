@@ -3,9 +3,14 @@
 from __future__ import annotations
 
 import base64
+import html
 from pathlib import Path
 
 from PIL import Image
+
+from pixopt._units import BYTES_PER_KB, BYTES_PER_MB, PERCENT
+
+__all__ = ["generate_comparison_html"]
 
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
@@ -124,7 +129,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
   slider.addEventListener('touchstart', () => dragging = true, {{passive: true}});
   window.addEventListener('touchend', () => dragging = false);
-  window.addEventListener('touchmove', e => {{ if (dragging) update(e.touches[0].clientX); }}, {{passive: true}});  # noqa: E501
+  window.addEventListener('touchmove', e => {{ if (dragging) update(e.touches[0].clientX); }}, {{passive: true}});
 }})();
 </script>
 </body>
@@ -134,14 +139,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 def _img_to_base64(path: Path) -> str:
     ext = path.suffix.lower().lstrip(".")
-    if ext == "svg":
-        mime = "image/svg+xml"
-        data = path.read_bytes()
-    else:
-        mime = f"image/{ext.replace('jpg', 'jpeg')}"
-        with Image.open(path) as img:
-            img.load()
-        data = path.read_bytes()
+    mime_subtype = ext.replace("jpg", "jpeg") if ext != "svg" else "svg+xml"
+    mime = "image/svg+xml" if ext == "svg" else f"image/{mime_subtype}"
+    data = path.read_bytes()
     b64 = base64.b64encode(data).decode("ascii")
     return f"data:{mime};base64,{b64}"
 
@@ -162,24 +162,30 @@ def generate_comparison_html(
 
     Returns:
         Path to the generated HTML file.
+
     """
     before_b64 = _img_to_base64(before_path)
     after_b64 = _img_to_base64(after_path)
 
-    with Image.open(before_path) as img:
-        width = img.width
+    try:
+        with Image.open(before_path) as img:
+            width = img.width
+    except (OSError, ValueError):
+        # Pillow cannot read the file (e.g. an SVG). Use a sensible default
+        # width; the responsive CSS still keeps the slider usable.
+        width = 800
 
     orig_size = before_path.stat().st_size
     opt_size = after_path.stat().st_size
     savings = orig_size - opt_size
-    pct = savings / orig_size * 100 if orig_size > 0 else 0
+    pct = savings / orig_size * PERCENT if orig_size > 0 else 0
 
     def _human(size: int) -> str:
-        if size < 1024:
+        if size < BYTES_PER_KB:
             return f"{size} B"
-        if size < 1024 * 1024:
-            return f"{size / 1024:.1f} KB"
-        return f"{size / (1024 * 1024):.2f} MB"
+        if size < BYTES_PER_MB:
+            return f"{size / BYTES_PER_KB:.1f} KB"
+        return f"{size / BYTES_PER_MB:.2f} MB"
 
     meta = (
         f"Original: {_human(orig_size)}  |  "
@@ -187,8 +193,10 @@ def generate_comparison_html(
         f"Savings: {_human(savings)} ({pct:.1f}%)"
     )
 
-    html = HTML_TEMPLATE.format(
-        title=title,
+    safe_title = html.escape(title)
+
+    html_content = HTML_TEMPLATE.format(
+        title=safe_title,
         meta=meta,
         before_b64=before_b64,
         after_b64=after_b64,
@@ -196,5 +204,5 @@ def generate_comparison_html(
     )
 
     output_html.parent.mkdir(parents=True, exist_ok=True)
-    output_html.write_text(html, encoding="utf-8")
+    output_html.write_text(html_content, encoding="utf-8")
     return output_html

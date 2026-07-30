@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -10,33 +11,40 @@ import piexif  # type: ignore[import-untyped]
 from PIL import Image
 from PIL.Image import Resampling
 
+from pixopt._units import WHITE
 from pixopt.format_resolver import resolve_output_format
 from pixopt.models import OutputFormat
 
 
 def convert_mode(img: Image.Image, pillow_fmt: str) -> Image.Image:
     """Convert image mode so it can be saved in the requested format."""
-    original_mode = img.mode
-
-    if pillow_fmt in ("JPEG", "WEBP") and original_mode in ("RGBA", "P", "LA", "L"):
-        if original_mode == "P" and "transparency" in img.info:
-            img = img.convert("RGBA")
-        if original_mode in ("RGBA", "LA"):
-            background = Image.new("RGB", img.size, (255, 255, 255))
-            if original_mode == "RGBA":
-                background.paste(img, mask=img.split()[3])
-            else:
-                background.paste(img, mask=img.split()[1])
-            return background
-        return img.convert("RGB")
-
-    if pillow_fmt == "PNG" and original_mode == "RGBA":
+    if pillow_fmt == "PNG":
         return img
 
-    if original_mode != "RGB" and pillow_fmt in ("JPEG", "WEBP"):
-        return img.convert("RGB")
+    if pillow_fmt not in ("JPEG", "WEBP"):
+        return img
 
-    return img
+    # JPEG and WEBP do not support alpha. Flatten any transparent image onto a
+    # white background so the transparent areas are not replaced with an
+    # unexpected color (Pillow's default is black when dropping alpha).
+    if img.mode in ("RGBA", "LA"):
+        background = Image.new("RGB", img.size, WHITE)
+        if img.mode == "RGBA":
+            background.paste(img, mask=img.split()[3])
+        else:
+            background.paste(img, mask=img.split()[1])
+        return background
+
+    if img.mode == "P" and "transparency" in img.info:
+        rgb = img.convert("RGBA")
+        background = Image.new("RGB", img.size, WHITE)
+        background.paste(rgb, mask=rgb.split()[3])
+        return background
+
+    if img.mode == "RGB":
+        return img
+
+    return img.convert("RGB")
 
 
 def resize_image(
@@ -99,13 +107,26 @@ def build_save_kwargs(
     return kwargs
 
 
+def _pixel_data(img: Image.Image) -> list[Any]:
+    """Return pixel data avoiding Pillow's deprecated getdata() when possible."""
+    if hasattr(img, "get_flattened_data"):
+        return list(img.get_flattened_data())
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        return list(img.getdata())
+
+
 def strip_metadata_pillow(img: Image.Image, pillow_fmt: str) -> Image.Image:
     """Return a new image with all metadata removed (for non-JPEG/WEBP formats)."""
     if pillow_fmt in ("JPEG", "WEBP"):
         return img
-    data = list(img.getdata())
+    data = _pixel_data(img)
     clean = Image.new(img.mode, img.size)
     clean.putdata(data)
+    if img.mode == "P":
+        palette = img.getpalette()
+        if palette is not None:
+            clean.putpalette(palette)
     return clean
 
 
@@ -126,6 +147,7 @@ def resolve_and_adjust_path(
 
     Returns:
         Tuple of (adjusted_output_path, pillow_format_name).
+
     """
     ext, pillow_fmt = resolve_output_format(img, output_path, output_format)
     if output_path.suffix.lower() != ext:

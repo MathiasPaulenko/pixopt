@@ -1,3 +1,5 @@
+"""Convert command: change image format or extension."""
+
 from __future__ import annotations
 
 from pathlib import Path

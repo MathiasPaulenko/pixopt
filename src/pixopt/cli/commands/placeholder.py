@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, cast
 
 import typer
 
 from pixopt.cli.app import app, console
-from pixopt.placeholder import generate_placeholder
+from pixopt.placeholder import PlaceholderType, generate_placeholder
 
 
 @app.command()
@@ -45,7 +45,7 @@ def placeholder(
 
     result = generate_placeholder(
         source,
-        placeholder_type=placeholder_type,  # type: ignore[arg-type]
+        placeholder_type=cast(PlaceholderType, placeholder_type),
     )
 
     console.print(f"[bold green]{placeholder_type.upper()}:[/bold green] {result}")

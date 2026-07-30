@@ -91,4 +91,4 @@ def compare(
 
     console.print(f"[bold green]Comparison saved to[/bold green] {output_html}")
     if open_browser:
-        webbrowser.open(f"file://{output_html}")
+        webbrowser.open(output_html.as_uri())

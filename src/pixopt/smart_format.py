@@ -4,9 +4,17 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
+from pixopt._units import (
+    COLOR_SAMPLE_SIZE,
+    MAX_CHANNEL_VALUE,
+    MAX_UNIQUE_COLORS,
+    SMART_FORMAT_PHOTO_THRESHOLD,
+)
 from pixopt.models import OutputFormat
+
+__all__ = ["detect_optimal_format"]
 
 
 def has_transparency(img: Image.Image) -> bool:
@@ -15,7 +23,7 @@ def has_transparency(img: Image.Image) -> bool:
     if mode in ("RGBA", "LA"):
         alpha = img.split()[-1]
         data = alpha.tobytes()
-        return any(b < 255 for b in data)
+        return any(b < MAX_CHANNEL_VALUE for b in data)
     if mode == "P":
         # Check if palette has transparency
         if "transparency" in img.info:
@@ -24,17 +32,19 @@ def has_transparency(img: Image.Image) -> bool:
         rgba = img.convert("RGBA")
         alpha = rgba.split()[-1]
         data = alpha.tobytes()
-        return any(b < 255 for b in data)
+        return any(b < MAX_CHANNEL_VALUE for b in data)
     return False
 
 
-def count_unique_colors(img: Image.Image, max_colors: int = 1024) -> int:
+def count_unique_colors(img: Image.Image, max_colors: int = MAX_UNIQUE_COLORS) -> int:
     """Count unique colors in the image, capped at max_colors.
 
     Uses a histogram approach with reduced precision for performance.
     """
     rgb = img.convert("RGB")
-    small = rgb.resize((100, 100), Image.Resampling.LANCZOS)
+    small = rgb.resize(
+        (COLOR_SAMPLE_SIZE, COLOR_SAMPLE_SIZE), Image.Resampling.LANCZOS
+    )
     data = small.tobytes()
     colors: set[tuple[int, int, int]] = set()
     for i in range(0, len(data), 3):
@@ -51,7 +61,7 @@ def is_photo(img: Image.Image) -> bool:
     Graphics/UI tend to have fewer colors and sharp edges.
     """
     unique = count_unique_colors(img, max_colors=512)
-    return unique >= 300
+    return unique >= SMART_FORMAT_PHOTO_THRESHOLD
 
 
 def detect_optimal_format(
@@ -71,31 +81,37 @@ def detect_optimal_format(
     """
     path = Path(image_path)
 
-    with Image.open(path) as img:
-        img.load()
+    try:
+        with Image.open(path) as img:
+            img.load()
 
-        is_animated = (
-            getattr(img, "is_animated", False)
-            or getattr(img, "n_frames", 1) > 1
-        )
-        if is_animated and allow_animation:
-            return OutputFormat.WEBP
-
-        transparent = has_transparency(img)
-        photo = is_photo(img)
-
-        if transparent:
-            if allow_lossless:
+            is_animated = (
+                getattr(img, "is_animated", False)
+                or getattr(img, "n_frames", 1) > 1
+            )
+            if is_animated and allow_animation:
                 return OutputFormat.WEBP
+
+            transparent = has_transparency(img)
+            photo = is_photo(img)
+
+            if transparent:
+                if allow_lossless:
+                    return OutputFormat.WEBP
+                return OutputFormat.PNG
+
+            if photo and allow_lossy:
+                return OutputFormat.WEBP
+
+            if not photo and allow_lossless:
+                return OutputFormat.WEBP
+
+            if allow_lossy:
+                return OutputFormat.JPEG
+
             return OutputFormat.PNG
-
-        if photo and allow_lossy:
-            return OutputFormat.WEBP
-
-        if not photo and allow_lossless:
-            return OutputFormat.WEBP
-
-        if allow_lossy:
-            return OutputFormat.JPEG
-
-        return OutputFormat.PNG
+    except (UnidentifiedImageError, Image.DecompressionBombError, ValueError):
+        # Corrupt, too large or otherwise unreadable images fall back to a
+        # widely supported default so the caller can report a controlled error
+        # through optimize_image instead of crashing.
+        return OutputFormat.WEBP

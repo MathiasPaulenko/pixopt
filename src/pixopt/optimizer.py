@@ -2,6 +2,13 @@
 
 from __future__ import annotations
 
+__all__ = [
+    "change_extension",
+    "convert_to_favicon",
+    "optimize_directory",
+    "optimize_image",
+]
+
 import shutil
 from collections.abc import Iterable
 from pathlib import Path
@@ -9,6 +16,12 @@ from pathlib import Path
 from PIL import Image
 from PIL.Image import Resampling
 
+from pixopt._units import (
+    MAX_QUALITY,
+    MIN_QUALITY,
+    PERCENT,
+    WHITE,
+)
 from pixopt.constants import DEFAULT_FAVICON_SIZES
 from pixopt.image_ops import (
     build_save_kwargs,
@@ -27,8 +40,27 @@ try:
     from pillow_heif import register_heif_opener  # type: ignore[import-untyped]
 
     register_heif_opener()
-except Exception:
+except ImportError:
     pass
+
+
+def _validate_optimize_params(
+    *,
+    quality: int,
+    max_width: int | None,
+    max_height: int | None,
+    min_size_bytes: int | None,
+) -> str | None:
+    """Return an error message if any parameter is invalid, otherwise None."""
+    if not MIN_QUALITY <= quality <= MAX_QUALITY:
+        return f"quality must be between {MIN_QUALITY} and {MAX_QUALITY}, got {quality}"
+    if max_width is not None and max_width <= 0:
+        return f"max_width must be a positive integer, got {max_width}"
+    if max_height is not None and max_height <= 0:
+        return f"max_height must be a positive integer, got {max_height}"
+    if min_size_bytes is not None and min_size_bytes < 0:
+        return f"min_size_bytes must be non-negative, got {min_size_bytes}"
+    return None
 
 
 def optimize_image(
@@ -68,10 +100,25 @@ def optimize_image(
 
     Returns:
         OptimizationResult with details of the operation.
+
     """
     source_path = Path(source)
     if not source_path.exists():
         return _error_result(source_path, f"File not found: {source_path}")
+
+    if not isinstance(output_format, OutputFormat):
+        return _error_result(
+            source_path,
+            f"output_format must be an OutputFormat value, got {type(output_format).__name__}",
+        )
+
+    if validation_error := _validate_optimize_params(
+        quality=quality,
+        max_width=max_width,
+        max_height=max_height,
+        min_size_bytes=min_size_bytes,
+    ):
+        return _error_result(source_path, validation_error)
 
     original_size = source_path.stat().st_size
 
@@ -112,18 +159,19 @@ def optimize_image(
         return _optimize_svg(source_path, output_path, original_size)
 
     try:
-        with Image.open(source_path) as img:
-            img.load()
+        with Image.open(source_path) as opened_img:
+            opened_img.load()
             output_path, pillow_fmt = resolve_and_adjust_path(
-                img, output_path, output_format
+                opened_img, output_path, output_format,
             )
 
-            is_animated = getattr(img, "is_animated", False) or getattr(img, "n_frames", 1) > 1
-            is_gif_source = (img.format or "").upper() == "GIF"
+            is_animated = getattr(opened_img, "is_animated", False) or getattr(
+                opened_img, "n_frames", 1,
+            ) > 1
 
-            if is_animated and is_gif_source and pillow_fmt == "WEBP":
+            if is_animated and pillow_fmt == "WEBP":
                 return _optimize_animated_gif(
-                    img,
+                    opened_img,
                     source_path,
                     output_path,
                     original_size,
@@ -137,8 +185,8 @@ def optimize_image(
                     lossless=lossless,
                 )
 
-            img = convert_mode(img, pillow_fmt)  # type: ignore[assignment]
-            img = resize_image(  # type: ignore[assignment]
+            img = convert_mode(opened_img, pillow_fmt)
+            img = resize_image(
                 img,
                 max_width=max_width,
                 max_height=max_height,
@@ -154,7 +202,7 @@ def optimize_image(
                 strip_metadata=strip_metadata,
                 lossless=lossless,
             )
-            img = strip_metadata_pillow(img, pillow_fmt)  # type: ignore[assignment]
+            img = strip_metadata_pillow(img, pillow_fmt)
 
 
             output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -172,7 +220,7 @@ def optimize_image(
             original_size=original_size,
             optimized_size=optimized_size,
             savings_bytes=savings,
-            savings_percent=(savings / original_size * 100) if original_size > 0 else 0.0,
+            savings_percent=(savings / original_size * PERCENT) if original_size > 0 else 0.0,
             width=new_width,
             height=new_height,
             format=pillow_fmt,
@@ -180,7 +228,14 @@ def optimize_image(
             success=True,
         )
 
-    except Exception as exc:
+    except Image.DecompressionBombError as exc:
+        return _error_result(
+            source_path,
+            f"Image too large or possible decompression bomb: {exc}",
+            original_size=original_size,
+            output=output_path,
+        )
+    except Exception as exc:  # noqa: BLE001
         return _error_result(source_path, str(exc), original_size=original_size, output=output_path)
 
 
@@ -204,14 +259,14 @@ def _optimize_svg(
             original_size=original_size,
             optimized_size=optimized_size,
             savings_bytes=savings,
-            savings_percent=(savings / original_size * 100) if original_size > 0 else 0.0,
+            savings_percent=(savings / original_size * PERCENT) if original_size > 0 else 0.0,
             width=0,
             height=0,
             format="SVG",
             metadata_removed=True,
             success=True,
         )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         return _error_result(source_path, str(exc), original_size=original_size, output=output_path)
 
 
@@ -271,14 +326,14 @@ def _optimize_animated_gif(
             original_size=original_size,
             optimized_size=optimized_size,
             savings_bytes=savings,
-            savings_percent=(savings / original_size * 100) if original_size > 0 else 0.0,
+            savings_percent=(savings / original_size * PERCENT) if original_size > 0 else 0.0,
             width=frames[0].width,
             height=frames[0].height,
             format=pillow_fmt,
             metadata_removed=strip_metadata,
             success=True,
         )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         return _error_result(source_path, str(exc), original_size=original_size, output=output_path)
 
 
@@ -305,6 +360,7 @@ def optimize_directory(
 
     Returns:
         List of OptimizationResult for each processed file.
+
     """
     src = Path(source_dir)
     results: list[OptimizationResult] = []
@@ -353,6 +409,7 @@ def change_extension(
 
     Returns:
         OptimizationResult with details of the conversion.
+
     """
     return optimize_image(
         source,
@@ -369,7 +426,7 @@ def convert_to_favicon(
     output: Path | str | None = None,
     *,
     sizes: list[int] | None = None,
-    background: tuple[int, int, int] = (255, 255, 255),
+    background: tuple[int, int, int] = WHITE,
     keep_transparency: bool = True,
 ) -> OptimizationResult:
     """Convert an image to a multi-resolution ICO favicon.
@@ -386,6 +443,7 @@ def convert_to_favicon(
 
     Returns:
         OptimizationResult with details of the operation.
+
     """
     source_path = Path(source)
     if not source_path.exists():
@@ -402,10 +460,24 @@ def convert_to_favicon(
 
     chosen_sizes = sizes if sizes is not None else DEFAULT_FAVICON_SIZES.copy()
 
+    if not chosen_sizes:
+        return _error_result(source_path, "sizes cannot be empty", original_size=original_size)
+
+    for size in chosen_sizes:
+        if size <= 0:
+            return _error_result(
+                source_path,
+                f"favicon sizes must be positive integers, got {size!r}",
+                original_size=original_size,
+            )
+
     try:
-        with Image.open(source_path) as img:
-            img.load()
-            if img.mode not in ("RGB", "RGBA") or img.mode == "RGB":
+        with Image.open(source_path) as opened_img:
+            opened_img.load()
+            # Work in RGBA so we can consistently composite on a background
+            # when keep_transparency is False, regardless of the source mode.
+            img = opened_img
+            if img.mode != "RGBA":
                 img = img.convert("RGBA")  # type: ignore[assignment]
 
             icons: list[Image.Image] = []
@@ -436,7 +508,7 @@ def convert_to_favicon(
             original_size=original_size,
             optimized_size=optimized_size,
             savings_bytes=savings,
-            savings_percent=(savings / original_size * 100) if original_size > 0 else 0.0,
+            savings_percent=(savings / original_size * PERCENT) if original_size > 0 else 0.0,
             width=max_size,
             height=max_size,
             format="ICO",
@@ -444,9 +516,9 @@ def convert_to_favicon(
             success=True,
         )
 
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         return _error_result(
-            source_path, str(exc), original_size=original_size, output=output_path
+            source_path, str(exc), original_size=original_size, output=output_path,
         )
 
 

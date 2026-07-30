@@ -60,6 +60,7 @@ WidthOption = Annotated[
     typer.Option(
         "--width",
         "-w",
+        min=1,
         help="Maximum width in pixels.",
     ),
 ]
@@ -69,6 +70,7 @@ HeightOption = Annotated[
     typer.Option(
         "--height",
         "-h",
+        min=1,
         help="Maximum height in pixels.",
     ),
 ]
@@ -102,6 +104,7 @@ TargetSizeOption = Annotated[
     int | None,
     typer.Option(
         "--target-size",
+        min=1,
         help="Target file size in KB. Enables adaptive quality search.",
     ),
 ]
@@ -118,6 +121,7 @@ MinSizeOption = Annotated[
     int | None,
     typer.Option(
         "--min-size",
+        min=1,
         help="Skip files already smaller than this threshold (KB).",
     ),
 ]
