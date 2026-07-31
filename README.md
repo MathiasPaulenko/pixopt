@@ -72,7 +72,19 @@ Whether you are a developer automating image pipelines, a designer preparing ass
 - 🧠 **Smart format detection** — auto-detect the most efficient format (photo → WEBP, graphic → PNG, transparent → WEBP)
 - 💾 **Backup originals** — copy originals to a backup directory before processing
 - ⚡ **Batch processing** — optimize single files, directories, or multiple files at once
-- 💻 **Beautiful CLI** — built with Typer for an intuitive command-line experience
+- �️ **Watermarking** — add text or image watermarks with position, opacity and tiling
+- 🧩 **Sprite sheets & contact sheets** — pack images into CSS sprites or visual contact sheets
+- 📦 **Asset bundles** — generate ready-to-deploy asset packages for the web
+- 📄 **PDF import/export** — extract pages as images or bundle images into PDFs
+- 🚀 **Next-gen formats** — produce JXL and AVIF outputs
+- 🔎 **Duplicate detection** — find visually or exactly similar images
+- 📁 **Directory scanning** — scan folders and produce reports with size savings
+- 🥊 **Format benchmark** — compare size/quality across JPEG, PNG, WEBP, AVIF, JXL
+- 🎨 **Color palette** — extract dominant color swatches from images
+- 🌊 **Async API** — async versions of all major operations
+- 🔡 **Base64 & bytes I/O** — optimize in-memory images for APIs and web services
+- 🔐 **Safety hardening** — path validation, input limits, and resource leak protection
+- �💻 **Beautiful CLI** — built with Typer for an intuitive command-line experience
 
 ---
 
@@ -221,6 +233,90 @@ Extract a placeholder for lazy loading (color, LQIP, or blurhash).
 pixopt placeholder photo.jpg --type color
 pixopt placeholder photo.jpg --type lqip
 pixopt placeholder photo.jpg --type blurhash -o blurhash.txt
+```
+
+#### `watermark`
+
+Add text or image watermarks.
+
+```bash
+pixopt watermark photo.jpg watermarked.jpg --text "© 2026"
+pixopt watermark photo.jpg watermarked.jpg --watermark-image logo.png --position bottom-right --opacity 0.5
+```
+
+#### `sprite`
+
+Pack images into a sprite or contact sheet.
+
+```bash
+pixopt sprite sprite.png icon1.png icon2.png icon3.png
+pixopt sprite contact.jpg ./thumbnails/* --contact-sheet
+```
+
+#### `bundle`
+
+Generate a ready-to-deploy asset bundle from a source image.
+
+```bash
+pixopt bundle photo.jpg -o ./bundle
+```
+
+#### `pdf`
+
+Import PDF pages as images or export images as a PDF.
+
+```bash
+pixopt pdf document.pdf -o ./pages
+pixopt pdf output.pdf --from-images page1.jpg,page2.jpg
+```
+
+#### `nextgen`
+
+Convert images to next-generation JXL or WebP2.
+
+```bash
+pixopt nextgen detect
+pixopt nextgen convert photo.jpg -o photo.jxl -f jxl
+```
+
+#### `duplicates`
+
+Find duplicate or visually similar images.
+
+```bash
+pixopt duplicates ./images --threshold 95
+```
+
+#### `scan`
+
+Scan a directory and report optimization potential.
+
+```bash
+pixopt scan ./images --recursive
+```
+
+#### `benchmark`
+
+Compare size/quality across formats.
+
+```bash
+pixopt benchmark photo.jpg --format JPEG --format WEBP --format AVIF
+```
+
+#### `palette`
+
+Extract a color palette from an image.
+
+```bash
+pixopt palette photo.jpg --count 5
+```
+
+#### `metrics`
+
+Compute PSNR/SSIM quality metrics between two images.
+
+```bash
+pixopt metrics original.jpg optimized.jpg
 ```
 
 ### Global Options
@@ -459,6 +555,81 @@ result = convert_to_favicon(
 )
 ```
 
+### Watermarking
+
+```python
+from pixopt import add_text_watermark, add_image_watermark
+
+add_text_watermark(
+    "photo.jpg",
+    "watermarked.jpg",
+    "© 2026",
+    position="bottom-right",
+)
+
+add_image_watermark(
+    "photo.jpg",
+    "watermarked.jpg",
+    watermark="logo.png",
+    position="bottom-right",
+    opacity=0.5,
+)
+```
+
+### Sprite sheets
+
+```python
+from pixopt.sprite import create_sprite
+
+result = create_sprite(
+    ["icon1.png", "icon2.png", "icon3.png"],
+    "sprite.png",
+    layout="grid",
+    fmt="PNG",
+)
+```
+
+### Asset bundles
+
+```python
+from pixopt.bundle import generate_asset_bundle
+
+bundle = generate_asset_bundle("photo.jpg", "./bundle")
+print(bundle.dominant_color)
+```
+
+### PDF export
+
+```python
+from pixopt.pdf_io import images_to_pdf
+
+pdf = images_to_pdf(
+    ["page1.jpg", "page2.jpg"],
+    "output.pdf",
+)
+```
+
+### Next-gen formats
+
+```python
+from pixopt.nextgen import convert_to_nextgen
+
+convert_to_nextgen("photo.jpg", "photo.jxl", fmt="jxl")
+```
+
+### Base64 and bytes I/O
+
+```python
+import base64
+from pixopt import optimize_base64, base64_to_image
+
+with open("photo.jpg", "rb") as f:
+    b64 = base64.b64encode(f.read()).decode("ascii")
+
+result = optimize_base64(b64, output_format="WEBP", quality=80)
+print(result.base64)  # optimized base64 string
+```
+
 ---
 
 ## API Reference
@@ -474,6 +645,19 @@ Key modules:
 - `pixopt.srcset_generator` — Responsive image generation (`generate_srcset_images`, `SrcsetImage`)
 - `pixopt.adaptive_quality` — Adaptive quality (`find_quality_for_target_size`)
 - `pixopt.html_comparison` — Visual comparison (`generate_comparison_html`)
+- `pixopt.watermark` — Watermarking (`add_text_watermark`, `add_image_watermark`)
+- `pixopt.sprite` — Sprite sheets and contact sheets (`create_sprite`, `create_contact_sheet`)
+- `pixopt.bundle` — Asset bundles (`generate_asset_bundle`)
+- `pixopt.pdf_io` — PDF import/export (`images_to_pdf`, `pdf_to_images`)
+- `pixopt.nextgen` — Next-gen formats (`convert_to_nextgen`)
+- `pixopt.duplicates` — Duplicate detection (`find_duplicates`, `compute_hash`)
+- `pixopt.inventory` — Directory scanning and reporting (`scan_directory`, `ScanReport`)
+- `pixopt.benchmark` — Format benchmarking (`benchmark_formats`)
+- `pixopt.palette` — Color palette extraction (`extract_palette`)
+- `pixopt.io_bytes` — Base64 and bytes I/O (`optimize_base64`, `base64_to_image`)
+- `pixopt.async_api` — Async operations (`async_optimize_image`, `async_batch_optimize`)
+- `pixopt.pipeline` — Fluent optimization pipeline (`Pipeline`)
+- `pixopt.presets` — Built-in and custom presets (`BUILTIN_PRESETS`, `apply_preset`)
 
 ---
 
