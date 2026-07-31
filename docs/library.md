@@ -328,7 +328,8 @@ total_saved = sum(r.savings_percent for r in results if r.success)
 success_count = sum(1 for r in results if r.success)
 
 print(f"Processed {success_count}/{len(results)} files")
-print(f"Average savings: {total_saved / success_count:.1f}%")
+if success_count:
+    print(f"Average savings: {total_saved / success_count:.1f}%")
 ```
 
 ### Using the `Pipeline` class
@@ -348,5 +349,5 @@ result = (
     .run()
 )
 
-print(f"Saved {result.savings_percent:.1f}%")
+print(f"Saved to {result.output_path} ({result.size_bytes} bytes)")
 ```
