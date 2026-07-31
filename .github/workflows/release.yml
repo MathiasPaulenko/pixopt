@@ -38,6 +38,7 @@ jobs:
         if: steps.version.outputs.bump == 'true'
         run: |
           pip install build ruff mypy
+          pip install -e .
           ruff check .
           ruff format --check .
           mypy pixopt
