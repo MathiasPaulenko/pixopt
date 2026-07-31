@@ -121,9 +121,7 @@ from pixopt.models import OutputFormat
 
 with Image.open("photo.jpg") as img:
     img.load()
-    quality = find_quality_for_target_size(
-        img, "JPEG", target_size=50 * 1024
-    )
+    quality = find_quality_for_target_size(img, "JPEG", target_size=50 * 1024)
 
 result = optimize_image(
     "photo.jpg",
@@ -248,8 +246,8 @@ result = optimize_image(
     "photo.jpg",
     "photo_optimized.jpg",
     quality=75,
-    backup_dir="./backups",        # Copy original here before processing
-    min_size_bytes=10240,           # Skip files below 10 KB
+    backup_dir="./backups",  # Copy original here before processing
+    min_size_bytes=10240,  # Skip files below 10 KB
 )
 ```
 

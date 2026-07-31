@@ -377,9 +377,7 @@ from pixopt.models import OutputFormat
 
 with Image.open("photo.jpg") as img:
     img.load()
-    quality = find_quality_for_target_size(
-        img, "JPEG", target_size=50 * 1024
-    )
+    quality = find_quality_for_target_size(img, "JPEG", target_size=50 * 1024)
 
 result = optimize_image(
     "photo.jpg",
