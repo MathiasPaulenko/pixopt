@@ -259,7 +259,7 @@ pixopt optimize photo.jpg --target-size 50
 
 ```bash
 pixopt optimize photo.jpg --smart-format
-pixopt convert graphic.png output --smart-format
+pixopt convert graphic.png output.webp --smart-format
 ```
 
 #### Backup originals before processing

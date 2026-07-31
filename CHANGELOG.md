@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Pinned `mkdocs-material` to `<9.7.0` in docs dependencies to avoid a broken upstream release that emits non-actionable warnings and causes `mkdocs build --strict` to fail.
+- Corrected smart-format examples in `README.md` and `docs/cli.md` to use an explicit output file (`output.webp`) rather than a directory.
 
 ### Added
 

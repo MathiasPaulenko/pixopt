@@ -132,7 +132,7 @@ pixopt convert icon.svg icon.min.svg
 pixopt convert icon.png icon.webp --lossless -f webp
 
 # Smart format detection
-pixopt convert graphic.png output --smart-format
+pixopt convert graphic.png output.webp --smart-format
 ```
 
 ---
