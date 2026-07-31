@@ -116,6 +116,45 @@ def test_load_custom_presets_non_boolean_flag(tmp_path: Path) -> None:
         load_custom_presets(f)
 
 
+def test_load_custom_presets_invalid_fit(tmp_path: Path) -> None:
+    f = tmp_path / "bad_fit.json"
+    f.write_text(json.dumps({"bad": {"fit": "squash"}}))
+    with pytest.raises(ValueError, match="fit"):
+        load_custom_presets(f)
+
+
+def test_load_custom_presets_invalid_anchor(tmp_path: Path) -> None:
+    f = tmp_path / "bad_anchor.json"
+    f.write_text(json.dumps({"bad": {"anchor": "middle"}}))
+    with pytest.raises(ValueError, match="anchor"):
+        load_custom_presets(f)
+
+
+def test_load_custom_presets_invalid_background_color(tmp_path: Path) -> None:
+    f = tmp_path / "bad_color.json"
+    f.write_text(json.dumps({"bad": {"background-color": "not-a-color"}}))
+    with pytest.raises(ValueError, match="background-color"):
+        load_custom_presets(f)
+
+
+def test_load_custom_presets_invalid_format(tmp_path: Path) -> None:
+    f = tmp_path / "bad_format.json"
+    f.write_text(json.dumps({"bad": {"format": "bmp"}}))
+    with pytest.raises(ValueError, match="format"):
+        load_custom_presets(f)
+
+
+def test_load_custom_presets_too_large_presets_file_size(tmp_path: Path) -> None:
+    f = tmp_path / "just_over.json"
+    # Make a valid JSON object whose file size is just above the limit.
+    from pixopt._units import MAX_PRESET_FILE_SIZE_BYTES
+
+    padding = " " * (MAX_PRESET_FILE_SIZE_BYTES + 1)
+    f.write_text(json.dumps({"x": {}}) + padding)
+    with pytest.raises(ValueError, match="too large"):
+        load_custom_presets(f)
+
+
 def test_custom_preset_overrides_builtin() -> None:
     custom = {"web": {"quality": 99}}
     p = resolve_preset("web", custom)

@@ -261,6 +261,11 @@ def test_scan_largest_smallest_different_order(output_dir: Path) -> None:
     assert report.smallest_size < report.largest_size
 
 
+def test_scan_directory_rejects_parent_reference(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="parent"):
+        scan_directory(tmp_path / ".." / "outside")
+
+
 # ---------------------------------------------------------------------------
 # CLI tests
 # ---------------------------------------------------------------------------

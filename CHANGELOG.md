@@ -18,9 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ensured image resources created by watermark, placeholder, favicon conversion, PDF import, and benchmark AVIF checks are closed.
 - Fixed `async_batch_optimize` to propagate progress-callback exceptions and convert unexpected `asyncio.gather` exceptions into `OptimizationResult` objects.
 - Added `validate_no_parent_references` for `benchmark` source, `inventory` directories, and `pipeline` source paths.
-- Replaced `Path.exists()` / `Path.stat()` checks with `try/except stat()` in `benchmark` and `inventory`.
+- Replaced `Path.exists()` / `Path.stat()` checks with `try/except stat()` in `benchmark`, `inventory`, and `nextgen`.
 - Ensured `sprite.py`, `pdf_io.py`, and `optimizer.py` close all opened image resources in `finally` blocks.
 - Fixed `pipeline.py` `save()` to validate output paths and use the system temp directory for watermark temporary files.
+
+### Changed
+
+- Pinned `mkdocs-material` to `<9.7.0` in docs dependencies to avoid a broken upstream release that emits non-actionable warnings and causes `mkdocs build --strict` to fail.
 
 ### Added
 

@@ -132,6 +132,11 @@ def test_benchmark_human_sizes(output_dir: Path) -> None:
     assert "B" in result.human_recommended_size or "KB" in result.human_recommended_size
 
 
+def test_benchmark_rejects_parent_reference(output_dir: Path) -> None:
+    with pytest.raises(ValueError, match="parent"):
+        benchmark_formats(output_dir / ".." / "outside.jpg")
+
+
 def test_benchmark_variant_label() -> None:
     v1 = BenchmarkVariant(format="JPEG", quality=80, size_bytes=1000, savings_percent=50.0)
     assert v1.label == "JPEG@q80"

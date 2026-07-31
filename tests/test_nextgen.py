@@ -189,6 +189,11 @@ def test_convert_to_nextgen_nonexistent_source_raises(output_dir: Path) -> None:
         convert_to_nextgen(output_dir / "nope.png", output_dir / "out.jxl")
 
 
+def test_convert_to_nextgen_rejects_parent_reference_source(output_dir: Path) -> None:
+    with pytest.raises(ValueError, match="parent"):
+        convert_to_nextgen(output_dir / ".." / "outside.png", output_dir / "out.jxl")
+
+
 def test_convert_to_nextgen_creates_parent_dir(output_dir: Path) -> None:
     img = _make_image(output_dir, "parent.png")
     out = output_dir / "subdir" / "nested" / "output.jxl"
