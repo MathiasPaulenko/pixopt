@@ -8,6 +8,7 @@ web backends.
 from __future__ import annotations
 
 import base64 as _b64
+import binascii
 import io
 from dataclasses import dataclass
 from typing import Any
@@ -241,7 +242,10 @@ def base64_to_image(b64_str: str) -> Image.Image:
     """
     if len(b64_str) > MAX_BASE64_LENGTH:
         raise ValueError(f"Base64 string too large (max {MAX_BASE64_LENGTH} characters)")
-    data = _b64.b64decode(b64_str)
+    try:
+        data = _b64.b64decode(b64_str)
+    except binascii.Error as exc:
+        raise ValueError(f"Invalid base64 input: {exc}") from exc
     if len(data) > MAX_INPUT_BYTES:
         raise ValueError(f"Decoded input too large (max {MAX_INPUT_BYTES} bytes)")
     return bytes_to_image(data)
@@ -405,7 +409,7 @@ def optimize_base64(
     """
     try:
         data = _b64.b64decode(b64_str)
-    except (ValueError, TypeError) as exc:
+    except (ValueError, TypeError, binascii.Error) as exc:
         return Base64Result(
             base64=None,
             format="",

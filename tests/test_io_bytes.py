@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import base64 as b64
-import binascii
 import io
 import json
 from pathlib import Path
@@ -135,7 +134,7 @@ def test_base64_roundtrip() -> None:
 
 
 def test_base64_to_image_invalid_raises() -> None:
-    with pytest.raises((binascii.Error, UnidentifiedImageError, ValueError)):
+    with pytest.raises(ValueError, match="Invalid base64"):
         base64_to_image("not valid base64 image data")
 
 
@@ -307,6 +306,14 @@ def test_optimize_base64_invalid_data() -> None:
     assert not result.success
     assert result.base64 is None
     assert result.error is not None
+
+
+def test_optimize_base64_invalid_base64_chars() -> None:
+    result = optimize_base64("not-base64!!!")
+
+    assert not result.success
+    assert result.base64 is None
+    assert "Invalid base64" in (result.error or "")
 
 
 def test_optimize_base64_resize() -> None:

@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `README.md` `optimize` example to include an explicit output file so `--smart-format` is valid without `--overwrite`.
 - Restored `mkdocs build --strict` in CI/docs workflows.
 - Removed invalid `--smart-format` flag from the `pixopt batch` example in `docs/cli.md`.
+- Fixed `base64_to_image` and `optimize_base64` to handle invalid base64 input gracefully by raising `ValueError` or returning an error result instead of leaking `binascii.Error`.
 
 ### Added
 
