@@ -21,6 +21,7 @@ from pixopt.cli.options import (
 from pixopt.html_comparison import generate_comparison_html
 from pixopt.models import OutputFormat
 from pixopt.optimizer import optimize_image
+from pixopt.utils import validate_no_parent_references
 
 
 @app.command()
@@ -60,6 +61,9 @@ def compare(
     import tempfile
     import webbrowser
 
+    if error := validate_no_parent_references(output_html, "output_html"):
+        console.print(f"[bold red]{error}[/bold red]")
+        raise typer.Exit(1)
     output_html = output_html.resolve()
 
     with tempfile.TemporaryDirectory() as tmp:

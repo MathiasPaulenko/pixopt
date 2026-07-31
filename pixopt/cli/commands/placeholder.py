@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated, cast
+from typing import Annotated
 
 import typer
 
+from pixopt._units import MAX_IMAGE_DIMENSION, MAX_QUALITY, MIN_QUALITY
 from pixopt.cli.app import app, console
 from pixopt.placeholder import PlaceholderType, generate_placeholder
+from pixopt.utils import validate_no_parent_references
 
 
 @app.command()
@@ -22,13 +24,13 @@ def placeholder(
         ),
     ],
     placeholder_type: Annotated[
-        str,
+        PlaceholderType,
         typer.Option(
             "--type",
             "-t",
             help="Placeholder type: color, lqip, blurhash.",
         ),
-    ] = "color",
+    ] = PlaceholderType.COLOR,
     output: Annotated[
         Path | None,
         typer.Option(
@@ -37,20 +39,39 @@ def placeholder(
             help="Write the placeholder to a file.",
         ),
     ] = None,
+    lqip_size: Annotated[
+        int,
+        typer.Option(
+            "--lqip-size",
+            min=1,
+            max=MAX_IMAGE_DIMENSION,
+            help="LQIP thumbnail max dimension in pixels.",
+        ),
+    ] = 32,
+    lqip_quality: Annotated[
+        int,
+        typer.Option(
+            "--lqip-quality",
+            min=MIN_QUALITY,
+            max=MAX_QUALITY,
+            help="LQIP JPEG quality (1-100).",
+        ),
+    ] = 20,
 ) -> None:
     """Generate a placeholder (dominant color, LQIP or blurhash) for lazy loading."""
-    if placeholder_type not in ("color", "lqip", "blurhash"):
-        console.print("[bold red]Invalid type. Use: color, lqip, or blurhash.[/bold red]")
-        raise typer.Exit(1)
-
     result = generate_placeholder(
         source,
-        placeholder_type=cast(PlaceholderType, placeholder_type),
+        placeholder_type=placeholder_type,
+        lqip_size=lqip_size,
+        lqip_quality=lqip_quality,
     )
 
-    console.print(f"[bold green]{placeholder_type.upper()}:[/bold green] {result}")
+    console.print(f"[bold green]{placeholder_type.value.upper()}:[/bold green] {result}")
 
     if output is not None:
+        if error := validate_no_parent_references(output, "output"):
+            console.print(f"[bold red]{error}[/bold red]")
+            raise typer.Exit(1)
         output = output.resolve()
         output.write_text(result + "\n", encoding="utf-8")
         console.print(f"[bold green]Saved to[/bold green] {output}")

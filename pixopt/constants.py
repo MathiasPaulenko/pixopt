@@ -2,6 +2,14 @@
 
 from pixopt.models import OutputFormat
 
+__all__ = [
+    "DEFAULT_EXTENSIONS",
+    "DEFAULT_FAVICON_SIZES",
+    "EXT_TO_FORMAT",
+    "FORMAT_MAP",
+    "FORMAT_TO_EXT",
+]
+
 EXT_TO_FORMAT: dict[str, str] = {
     ".jpg": "JPEG",
     ".jpeg": "JPEG",

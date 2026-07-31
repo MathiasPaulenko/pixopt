@@ -2,12 +2,82 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Annotated
 
 import typer
 
-from pixopt.models import OutputFormat
+from pixopt.image_ops import parse_color
+from pixopt.models import Anchor, FitMode, OutputFormat
+
+FitOption = Annotated[
+    FitMode | None,
+    typer.Option(
+        "--fit",
+        help="Resize fit mode: down, cover, contain, fill.",
+        case_sensitive=False,
+    ),
+]
+
+AnchorOption = Annotated[
+    Anchor,
+    typer.Option(
+        "--anchor",
+        "-a",
+        help="Anchor point for cover/contain: center, top, face, etc.",
+        case_sensitive=False,
+    ),
+]
+
+_ASPECT_RATIO_RE = re.compile(r"^\d+[:/]\d+$")
+
+
+def _validate_aspect_ratio(value: str | None) -> str | None:
+    if value is None:
+        return None
+    if not _ASPECT_RATIO_RE.match(value):
+        raise typer.BadParameter("aspect ratio must be in the form 'W:H' or 'W/H'")
+    return value
+
+
+AspectRatioOption = Annotated[
+    str | None,
+    typer.Option(
+        "--aspect-ratio",
+        "--ar",
+        help="Target aspect ratio, e.g. '16:9' or '4/3'.",
+        callback=_validate_aspect_ratio,
+    ),
+]
+
+
+def _validate_background_color(value: str) -> str:
+    try:
+        parse_color(value)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    return value
+
+
+BackgroundColorOption = Annotated[
+    str,
+    typer.Option(
+        "--background-color",
+        "--bg",
+        help="Background color for contain padding, e.g. 'white' or '#ffffff'.",
+        callback=_validate_background_color,
+    ),
+]
+
+AutoOrientOption = Annotated[
+    bool | None,
+    typer.Option(
+        "--auto-orient/--keep-orientation",
+        help="Apply EXIF orientation before processing (default: True).",
+    ),
+]
+
 
 FormatChoices = Annotated[
     OutputFormat,
@@ -123,5 +193,43 @@ MinSizeOption = Annotated[
         "--min-size",
         min=1,
         help="Skip files already smaller than this threshold (KB).",
+    ),
+]
+
+PresetOption = Annotated[
+    str | None,
+    typer.Option(
+        "--preset",
+        "-p",
+        help="Apply a named preset: web, social, thumbnail, e-commerce, print.",
+        case_sensitive=False,
+    ),
+]
+
+PresetFileOption = Annotated[
+    Path | None,
+    typer.Option(
+        "--preset-file",
+        help="Load custom presets from a JSON file (use with --preset).",
+        exists=True,
+        resolve_path=True,
+    ),
+]
+
+
+def _validate_output_format(value: str) -> str:
+    value = value.lower()
+    if value not in ("json", "table"):
+        raise typer.BadParameter("output format must be 'json' or 'table'")
+    return value
+
+
+OutputFormatOption = Annotated[
+    str,
+    typer.Option(
+        "--output",
+        help="Output format: 'json' for JSON, 'table' for rich table (default).",
+        case_sensitive=False,
+        callback=_validate_output_format,
     ),
 ]

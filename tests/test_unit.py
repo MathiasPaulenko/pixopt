@@ -7,6 +7,8 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
+from pixopt import Base64Result, PlaceholderType, validate_optimize_params
+from pixopt._units import MAX_BLURHASH_COMPONENTS, MAX_IMAGE_DIMENSION
 from pixopt.adaptive_quality import find_quality_for_target_size
 from pixopt.format_resolver import resolve_output_format
 from pixopt.html_comparison import generate_comparison_html
@@ -141,7 +143,9 @@ def test_strip_metadata_pillow_png() -> None:
     img.putpixel((5, 5), 1)
     clean = strip_metadata_pillow(img, "PNG")
     assert clean.getpixel((0, 0)) == 0
-    assert list(clean.getpalette()[:6]) == [255, 0, 0, 0, 255, 0]
+    clean_palette = clean.getpalette()
+    assert clean_palette is not None
+    assert list(clean_palette[:6]) == [255, 0, 0, 0, 255, 0]
 
 
 def test_resolve_and_adjust_path_unknown_suffix(photo_image: Image.Image, tmp_path: Path) -> None:
@@ -305,15 +309,49 @@ def test_generate_placeholder_default(tmp_path: Path) -> None:
     assert result.startswith("data:image/jpeg")
 
 
+def test_public_placeholder_type_enum() -> None:
+    """PlaceholderType is exported from the package root."""
+    assert PlaceholderType.LQIP.value == "lqip"
+    assert PlaceholderType.COLOR.value == "color"
+
+
+def test_public_validate_optimize_params() -> None:
+    """validate_optimize_params is exported and returns validation errors."""
+    assert (
+        validate_optimize_params(quality=85, max_width=None, max_height=None, min_size_bytes=None)
+        is None
+    )
+    assert (
+        validate_optimize_params(quality=101, max_width=None, max_height=None, min_size_bytes=None)
+        is not None
+    )
+
+
+def test_public_base64_result_type() -> None:
+    """Base64Result is exported from the package root."""
+    result = Base64Result(
+        base64=None,
+        format="",
+        width=0,
+        height=0,
+        original_size=0,
+        optimized_size=0,
+        savings_bytes=0,
+        savings_percent=0.0,
+        success=False,
+    )
+    assert result.to_dict()["base64"] is None
+
+
 def test_optimize_svg_comments_and_cdata() -> None:
     raw = (
         '<?xml version="1.0"?>\n'
         '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN">\n'
-        '<!-- comment -->\n'
+        "<!-- comment -->\n"
         '<svg width="100" height="100">\n'
-        '<![CDATA[ <some>content</some> ]]>\n'
+        "<![CDATA[ <some>content</some> ]]>\n"
         '<rect x="10.123456" y="20.0" width="50" height="50" opacity="1"/>\n'
-        '</svg>'
+        "</svg>"
     )
     optimized = optimize_svg(raw)
     assert "<!-- comment -->" not in optimized
@@ -441,14 +479,23 @@ def test_adaptive_quality_non_jpeg_webp(photo_image: Image.Image) -> None:
 
 def test_adaptive_quality_lossless(photo_image: Image.Image) -> None:
     quality = find_quality_for_target_size(
-        photo_image, "WEBP", 1000, lossless=True, max_iterations=10,
+        photo_image,
+        "WEBP",
+        1000,
+        lossless=True,
+        max_iterations=10,
     )
     assert 1 <= quality <= 100
 
 
 def test_adaptive_quality_with_resize(photo_image: Image.Image) -> None:
     quality = find_quality_for_target_size(
-        photo_image, "JPEG", 5000, max_width=50, max_height=50, max_iterations=10,
+        photo_image,
+        "JPEG",
+        5000,
+        max_width=50,
+        max_height=50,
+        max_iterations=10,
     )
     assert 1 <= quality <= 100
 
@@ -547,6 +594,14 @@ def test_convert_to_favicon_corrupt(tmp_path: Path) -> None:
     assert not result.success
 
 
+def test_convert_to_favicon_too_many_sizes(tmp_path: Path) -> None:
+    src = tmp_path / "logo.png"
+    Image.new("RGB", (256, 256)).save(src)
+    result = convert_to_favicon(src, tmp_path / "favicon.ico", sizes=[1] * 21)
+    assert not result.success
+    assert "too many" in (result.error or "").lower()
+
+
 def test_change_extension_overwrite_in_place(tmp_path: Path) -> None:
     src = tmp_path / "test.jpg"
     Image.new("RGB", (10, 10)).save(src)
@@ -569,3 +624,81 @@ def test_convert_to_favicon_missing_source(tmp_path: Path) -> None:
     assert not result.success
     assert "not found" in (result.error or "").lower()
 
+
+def test_resolve_output_format_without_filename() -> None:
+    img = Image.new("RGB", (10, 10))
+    ext, fmt = resolve_output_format(img, Path("out.jpg"), OutputFormat.ORIGINAL)
+    assert ext == ".jpg"
+    assert fmt == "JPEG"
+
+
+def test_resolve_output_format_unknown_extension_no_filename() -> None:
+    img = Image.new("RGB", (10, 10))
+    ext, fmt = resolve_output_format(img, Path("photo.xyz"), OutputFormat.AUTO)
+    assert ext == ".jpg"
+    assert fmt == "JPEG"
+
+
+def test_optimize_svg_no_capture_group_match() -> None:
+    optimized = optimize_svg("<svg><rect/></svg>")
+    assert "<rect" in optimized
+
+
+def test_optimize_svg_cdata_with_tags() -> None:
+    raw = "<svg><style><![CDATA[<script>alert(1)</script>]]></style></svg>"
+    optimized = optimize_svg(raw)
+    assert "<script>alert(1)</script>" in optimized
+
+
+def test_optimize_svg_doctype_and_xml_declaration() -> None:
+    raw = '<?xml version="1.0"?><!DOCTYPE svg><svg/>'
+    optimized = optimize_svg(raw)
+    assert "?xml" not in optimized
+    assert "DOCTYPE" not in optimized
+
+
+def test_optimize_svg_size_limit() -> None:
+    from pixopt._units import MAX_INPUT_BYTES
+
+    raw = '<svg width="10" height="10"></svg>' + " " * (MAX_INPUT_BYTES + 1)
+    with pytest.raises(ValueError, match="too large"):
+        optimize_svg(raw)
+
+
+def test_optimize_svg_nested_quotes() -> None:
+    raw = '<svg data="&quot;quoted&quot;"></svg>'
+    optimized = optimize_svg(raw)
+    assert isinstance(optimized, str)
+    assert "<svg" in optimized
+
+
+def test_optimize_svg_self_closing_tags() -> None:
+    raw = '<svg><rect width="100" height="50" /></svg>'
+    optimized = optimize_svg(raw)
+    assert "/>" in optimized
+
+
+def test_detect_optimal_format_oversized_image(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("pixopt.smart_format.MAX_IMAGE_DIMENSION", 50)
+    src = tmp_path / "huge.jpg"
+    Image.new("RGB", (100, 100)).save(src)
+    fmt = detect_optimal_format(src)
+    assert fmt == OutputFormat.WEBP
+
+
+def test_generate_lqip_datauri_size_too_large() -> None:
+    with pytest.raises(ValueError):
+        generate_lqip_datauri(Image.new("RGB", (10, 10)), size=MAX_IMAGE_DIMENSION + 1)
+
+
+def test_generate_blurhash_components_too_large() -> None:
+    with pytest.raises(ValueError):
+        generate_blurhash(Image.new("RGB", (10, 10)), components_x=MAX_BLURHASH_COMPONENTS + 1)
+
+
+def test_generate_placeholder_oversized_image(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("pixopt.placeholder.MAX_IMAGE_DIMENSION", 50)
+    src = tmp_path / "huge.jpg"
+    Image.new("RGB", (100, 100)).save(src)
+    with pytest.raises(ValueError, match="too large"):
+        generate_placeholder(src)

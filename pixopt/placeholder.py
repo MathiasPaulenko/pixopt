@@ -4,12 +4,18 @@ from __future__ import annotations
 
 import base64
 import io
+from enum import Enum
 from pathlib import Path
-from typing import Literal
 
 from PIL import Image, ImageFilter
 
-from pixopt._units import MAX_QUALITY, MIN_QUALITY
+from pixopt._units import (
+    MAX_BLURHASH_COMPONENTS,
+    MAX_IMAGE_DIMENSION,
+    MAX_QUALITY,
+    MIN_QUALITY,
+)
+from pixopt.image_ops import _open_image
 
 __all__ = [
     "PlaceholderType",
@@ -19,7 +25,13 @@ __all__ = [
     "generate_placeholder",
 ]
 
-PlaceholderType = Literal["color", "lqip", "blurhash"]
+
+class PlaceholderType(str, Enum):
+    """Supported placeholder types."""
+
+    COLOR = "color"
+    LQIP = "lqip"
+    BLURHASH = "blurhash"
 
 
 def extract_dominant_color(img: Image.Image) -> str:
@@ -47,8 +59,8 @@ def generate_lqip_datauri(img: Image.Image, *, size: int = 32, quality: int = 20
         A base64 data URI string like 'data:image/jpeg;base64,/9j/4AAQ...'.
 
     """
-    if size <= 0:
-        raise ValueError(f"size must be positive, got {size}")
+    if size <= 0 or size > MAX_IMAGE_DIMENSION:
+        raise ValueError(f"size must be between 1 and {MAX_IMAGE_DIMENSION}, got {size}")
     if not MIN_QUALITY <= quality <= MAX_QUALITY:
         raise ValueError(
             f"quality must be between {MIN_QUALITY} and {MAX_QUALITY}, got {quality}",
@@ -59,9 +71,10 @@ def generate_lqip_datauri(img: Image.Image, *, size: int = 32, quality: int = 20
     thumb.thumbnail((size, size), Image.Resampling.LANCZOS)
     thumb = thumb.filter(ImageFilter.GaussianBlur(radius=2))
 
-    buf = io.BytesIO()
-    thumb.save(buf, format="JPEG", quality=quality, optimize=True)
-    b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+    with io.BytesIO() as buf:
+        thumb.save(buf, format="JPEG", quality=quality, optimize=True)
+        b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+    thumb.close()
     return f"data:image/jpeg;base64,{b64}"
 
 
@@ -96,42 +109,58 @@ def generate_blurhash(img: Image.Image, *, components_x: int = 4, components_y: 
             f"components_x and components_y must be positive, "
             f"got {components_x!r} and {components_y!r}",
         )
+    if components_x > MAX_BLURHASH_COMPONENTS or components_y > MAX_BLURHASH_COMPONENTS:
+        raise ValueError(
+            f"components_x and components_y must not exceed {MAX_BLURHASH_COMPONENTS}, "
+            f"got {components_x!r} and {components_y!r}"
+        )
 
     rgb = img.convert("RGB")
-    w, h = rgb.size
-    cell_w = max(1, w // components_x)
-    cell_h = max(1, h // components_y)
+    try:
+        w, h = rgb.size
+        cell_w = max(1, w // components_x)
+        cell_h = max(1, h // components_y)
 
-    # Size flag (components - 1) each fits in one char
-    size_flag = (components_y - 1) * 9 + (components_x - 1)
-    parts: list[str] = [_encode_base83(size_flag, 1)]
+        # Size flag (components - 1) each fits in one char
+        size_flag = (components_y - 1) * 9 + (components_x - 1)
+        parts: list[str] = [_encode_base83(size_flag, 1)]
 
-    for cy in range(components_y):
-        for cx in range(components_x):
-            x1 = cx * cell_w
-            y1 = cy * cell_h
-            x2 = min(w, x1 + cell_w)
-            y2 = min(h, y1 + cell_h)
-            region = rgb.crop((x1, y1, x2, y2))
-            data = region.tobytes()
-            n = len(data) // 3
-            if n == 0:
-                r = g = b = 0
-            else:
-                r = sum(data[i] for i in range(0, len(data), 3)) // n
-                g = sum(data[i + 1] for i in range(0, len(data), 3)) // n
-                b = sum(data[i + 2] for i in range(0, len(data), 3)) // n
-            # Pack RGB into a single base83 value
-            packed = (r << 16) | (g << 8) | b
-            parts.append(_encode_base83(packed, 4))
+        for cy in range(components_y):
+            for cx in range(components_x):
+                x1 = cx * cell_w
+                y1 = cy * cell_h
+                x2 = min(w, x1 + cell_w)
+                y2 = min(h, y1 + cell_h)
+                region = rgb.crop((x1, y1, x2, y2))
+                try:
+                    data = region.tobytes()
+                    n = len(data) // 3
+                    if n == 0:
+                        r = g = b = 0
+                    else:
+                        r_total = g_total = b_total = 0
+                        for i in range(0, len(data), 3):
+                            r_total += data[i]
+                            g_total += data[i + 1]
+                            b_total += data[i + 2]
+                        r = r_total // n
+                        g = g_total // n
+                        b = b_total // n
+                    # Pack RGB into a single base83 value
+                    packed = (r << 16) | (g << 8) | b
+                    parts.append(_encode_base83(packed, 4))
+                finally:
+                    region.close()
 
-    return "".join(parts)
+        return "".join(parts)
+    finally:
+        rgb.close()
 
 
 def generate_placeholder(
     image_path: Path,
     *,
-    placeholder_type: PlaceholderType = "lqip",
+    placeholder_type: PlaceholderType | str = PlaceholderType.LQIP,
     lqip_size: int = 32,
     lqip_quality: int = 20,
 ) -> str:
@@ -147,17 +176,26 @@ def generate_placeholder(
         A CSS color string, base64 data URI, or blurhash string.
 
     """
-    if placeholder_type not in ("color", "lqip", "blurhash"):
+    ptype = (
+        placeholder_type.value.lower()
+        if isinstance(placeholder_type, PlaceholderType)
+        else str(placeholder_type).lower()
+    )
+    if ptype not in ("color", "lqip", "blurhash"):
         raise ValueError(
             f"placeholder_type must be 'color', 'lqip' or 'blurhash', got {placeholder_type!r}",
         )
 
-    with Image.open(image_path) as img:
+    with _open_image(image_path, label="source") as img:
         img.load()
-        if placeholder_type == "color":
+        if img.width > MAX_IMAGE_DIMENSION or img.height > MAX_IMAGE_DIMENSION:
+            raise ValueError(
+                f"Image dimensions too large: {img.width}x{img.height} (max {MAX_IMAGE_DIMENSION})"
+            )
+        if ptype == "color":
             return extract_dominant_color(img)
-        if placeholder_type == "lqip":
+        if ptype == "lqip":
             return generate_lqip_datauri(img, size=lqip_size, quality=lqip_quality)
-        if placeholder_type == "blurhash":
+        if ptype == "blurhash":
             return generate_blurhash(img)
     return ""

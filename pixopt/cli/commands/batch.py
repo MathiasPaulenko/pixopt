@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Annotated
 
@@ -16,14 +17,17 @@ from pixopt.cli.options import (
     LosslessOption,
     MinSizeOption,
     OptimizeOption,
+    OutputFormatOption,
     ProgressiveOption,
     QualityOption,
     StripOption,
     WidthOption,
 )
 from pixopt.cli.output import _print_summary
-from pixopt.models import OptimizationResult, OutputFormat
-from pixopt.optimizer import optimize_image
+from pixopt.models import OutputFormat
+from pixopt.optimizer import batch_optimize
+from pixopt.progress import ProgressInfo
+from pixopt.utils import validate_no_parent_references
 
 
 @app.command()
@@ -54,27 +58,38 @@ def batch(
     lossless: LosslessOption = False,
     backup: BackupOption = None,
     min_size: MinSizeOption = None,
+    output_fmt: OutputFormatOption = "table",
 ) -> None:
-    """Optimize multiple image files at once."""
+    """Optimize multiple image files at once and return an aggregated report."""
+    if error := validate_no_parent_references(output_dir, "output_dir"):
+        console.print(f"[bold red]{error}[/bold red]")
+        raise typer.Exit(1)
     output_dir = output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
     min_bytes = min_size * 1024 if min_size is not None else None
 
-    results: list[OptimizationResult] = []
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        TaskProgressColumn(),
-        console=console,
-    ) as progress:
-        task = progress.add_task("Optimizing images...", total=len(sources))
-        for src in sources:
-            out = output_dir / src.name
-            result = optimize_image(
-                src,
-                out,
+    use_progress = sys.stdout.isatty()
+    if use_progress:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Optimizing images...", total=len(sources))
+
+            def _on_progress(info: ProgressInfo) -> None:
+                progress.update(
+                    task,
+                    completed=info.current,
+                    description=f"Optimizing {info.current_file.name}...",
+                )
+
+            report = batch_optimize(
+                sources,
+                output_dir,
                 max_width=width,
                 max_height=height,
                 quality=quality,
@@ -85,8 +100,37 @@ def batch(
                 lossless=lossless,
                 backup_dir=backup,
                 min_size_bytes=min_bytes,
+                on_progress=_on_progress,
             )
-            results.append(result)
-            progress.advance(task)
+    else:
+        report = batch_optimize(
+            sources,
+            output_dir,
+            max_width=width,
+            max_height=height,
+            quality=quality,
+            strip_metadata=strip,
+            output_format=fmt,
+            progressive=progressive,
+            optimize=optimize_flag,
+            lossless=lossless,
+            backup_dir=backup,
+            min_size_bytes=min_bytes,
+        )
 
-    _print_summary(results)
+    if output_fmt == "json":
+        import json
+
+        console.print_json(json.dumps(report.to_dict(), default=str))
+        return
+
+    _print_summary(report.results)
+    console.print(
+        f"\n[bold]Batch Report:[/bold] "
+        f"{report.succeeded}/{report.total_files} succeeded, "
+        f"{report.failed} failed. "
+        f"Saved {report.human_total_savings} ({report.total_savings_percent:.1f}%) "
+        f"in {report.elapsed_seconds:.2f}s",
+    )
+    if report.failed:
+        raise typer.Exit(1)

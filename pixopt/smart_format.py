@@ -9,12 +9,19 @@ from PIL import Image, UnidentifiedImageError
 from pixopt._units import (
     COLOR_SAMPLE_SIZE,
     MAX_CHANNEL_VALUE,
+    MAX_IMAGE_DIMENSION,
     MAX_UNIQUE_COLORS,
     SMART_FORMAT_PHOTO_THRESHOLD,
 )
+from pixopt.image_ops import _open_image
 from pixopt.models import OutputFormat
 
-__all__ = ["detect_optimal_format"]
+__all__ = [
+    "count_unique_colors",
+    "detect_optimal_format",
+    "has_transparency",
+    "is_photo",
+]
 
 
 def has_transparency(img: Image.Image) -> bool:
@@ -30,9 +37,12 @@ def has_transparency(img: Image.Image) -> bool:
             return True
         # Convert to RGBA and check
         rgba = img.convert("RGBA")
-        alpha = rgba.split()[-1]
-        data = alpha.tobytes()
-        return any(b < MAX_CHANNEL_VALUE for b in data)
+        try:
+            alpha = rgba.split()[-1]
+            data = alpha.tobytes()
+            return any(b < MAX_CHANNEL_VALUE for b in data)
+        finally:
+            rgba.close()
     return False
 
 
@@ -42,16 +52,20 @@ def count_unique_colors(img: Image.Image, max_colors: int = MAX_UNIQUE_COLORS) -
     Uses a histogram approach with reduced precision for performance.
     """
     rgb = img.convert("RGB")
-    small = rgb.resize(
-        (COLOR_SAMPLE_SIZE, COLOR_SAMPLE_SIZE), Image.Resampling.LANCZOS
-    )
-    data = small.tobytes()
-    colors: set[tuple[int, int, int]] = set()
-    for i in range(0, len(data), 3):
-        colors.add((data[i], data[i + 1], data[i + 2]))
-        if len(colors) >= max_colors:
-            return max_colors
-    return len(colors)
+    small: Image.Image | None = None
+    try:
+        small = rgb.resize((COLOR_SAMPLE_SIZE, COLOR_SAMPLE_SIZE), Image.Resampling.LANCZOS)
+        data = small.tobytes()
+        colors: set[tuple[int, int, int]] = set()
+        for i in range(0, len(data), 3):
+            colors.add((data[i], data[i + 1], data[i + 2]))
+            if len(colors) >= max_colors:
+                return max_colors
+        return len(colors)
+    finally:
+        if small is not None:
+            small.close()
+        rgb.close()
 
 
 def is_photo(img: Image.Image) -> bool:
@@ -82,13 +96,12 @@ def detect_optimal_format(
     path = Path(image_path)
 
     try:
-        with Image.open(path) as img:
+        with _open_image(path, label="source") as img:
             img.load()
+            if img.width > MAX_IMAGE_DIMENSION or img.height > MAX_IMAGE_DIMENSION:
+                return OutputFormat.WEBP
 
-            is_animated = (
-                getattr(img, "is_animated", False)
-                or getattr(img, "n_frames", 1) > 1
-            )
+            is_animated = getattr(img, "is_animated", False) or getattr(img, "n_frames", 1) > 1
             if is_animated and allow_animation:
                 return OutputFormat.WEBP
 

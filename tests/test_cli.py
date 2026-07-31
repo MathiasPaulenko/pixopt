@@ -7,6 +7,7 @@ import sys
 import webbrowser
 from collections.abc import Generator
 from pathlib import Path
+from typing import cast
 
 import pytest
 from PIL import Image
@@ -21,22 +22,6 @@ from pixopt.models import OptimizationResult
 @pytest.fixture
 def runner() -> CliRunner:
     return CliRunner()
-
-
-@pytest.fixture
-def sample_image(tmp_path: Path) -> Path:
-    img_path = tmp_path / "test.jpg"
-    Image.new("RGB", (800, 600), color=(255, 0, 0)).save(img_path, quality=95)
-    return img_path
-
-
-@pytest.fixture
-def sample_dir(tmp_path: Path) -> Path:
-    d = tmp_path / "images"
-    d.mkdir()
-    Image.new("RGB", (200, 200), color=(255, 0, 0)).save(d / "a.jpg")
-    Image.new("RGB", (200, 200), color=(0, 255, 0)).save(d / "b.png")
-    return d
 
 
 @pytest.fixture
@@ -270,7 +255,7 @@ def test_print_result_success(_capture_console: Console) -> None:
         success=True,
     )
     output_module._print_result(result)
-    text = _capture_console.file.getvalue()
+    text = cast(io.StringIO, _capture_console.file).getvalue()
     assert "Optimized" in text
     assert "output.jpg" in text
     assert "50.0%" in text
@@ -292,7 +277,7 @@ def test_print_result_failure(_capture_console: Console) -> None:
         error="broken",
     )
     output_module._print_result(result)
-    text = _capture_console.file.getvalue()
+    text = cast(io.StringIO, _capture_console.file).getvalue()
     assert "Error" in text
     assert "broken" in text
 
@@ -328,7 +313,7 @@ def test_print_summary(_capture_console: Console) -> None:
         ),
     ]
     output_module._print_summary(results)
-    text = _capture_console.file.getvalue()
+    text = cast(io.StringIO, _capture_console.file).getvalue()
     assert "Optimization Summary" in text
     assert "1/2" in text
     assert "Saved" in text
@@ -336,7 +321,7 @@ def test_print_summary(_capture_console: Console) -> None:
 
 def test_print_summary_empty(_capture_console: Console) -> None:
     output_module._print_summary([])
-    text = _capture_console.file.getvalue()
+    text = cast(io.StringIO, _capture_console.file).getvalue()
     assert "Optimization Summary" in text
 
 
@@ -366,9 +351,11 @@ def test_info_command_exif(runner: CliRunner, tmp_path: Path) -> None:
 
     src = tmp_path / "exif.jpg"
     img = Image.new("RGB", (100, 100))
-    exif = piexif.dump({
-        "0th": {piexif.ImageIFD.Make: b"TestMaker"},
-    })
+    exif = piexif.dump(
+        {
+            "0th": {piexif.ImageIFD.Make: b"TestMaker"},
+        }
+    )
     img.save(src, exif=exif)
     result = runner.invoke(app, ["info", str(src)])
     assert result.exit_code == 0
@@ -428,3 +415,21 @@ def test_cli_module_main(monkeypatch: pytest.MonkeyPatch) -> None:
     with pytest.raises(SystemExit) as exc:
         runpy.run_module("pixopt.cli", run_name="__main__", alter_sys=False)
     assert exc.value.code == 0
+
+
+def test_batch_output_dir_parent_reference_rejected(runner: CliRunner, sample_image: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["batch", str(sample_image), "--output-dir", "../../escaped"],
+    )
+    assert result.exit_code != 0
+
+
+def test_compare_output_html_parent_reference_rejected(
+    runner: CliRunner, sample_image: Path
+) -> None:
+    result = runner.invoke(
+        app,
+        ["compare", str(sample_image), "../../escaped.html"],
+    )
+    assert result.exit_code != 0

@@ -7,7 +7,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
 from PIL import Image
 
 
@@ -25,22 +24,6 @@ def _run(*args: str, check: bool = False) -> subprocess.CompletedProcess[str]:
         check=check,
         env=env,
     )
-
-
-@pytest.fixture
-def sample_image(tmp_path: Path) -> Path:
-    src = tmp_path / "photo.jpg"
-    Image.new("RGB", (800, 600), color=(255, 0, 0)).save(src, quality=95)
-    return src
-
-
-@pytest.fixture
-def sample_dir(tmp_path: Path) -> Path:
-    d = tmp_path / "images"
-    d.mkdir()
-    Image.new("RGB", (200, 200)).save(d / "a.jpg")
-    Image.new("RGB", (200, 200)).save(d / "b.png")
-    return d
 
 
 def test_e2e_help() -> None:

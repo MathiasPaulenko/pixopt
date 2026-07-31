@@ -59,6 +59,16 @@ for r in results:
 !!! note
     Files that fail to process (e.g., corrupted images) will have `result.success == False` and an `error` message. The rest of the batch continues uninterrupted.
 
+To process a specific list of files instead of a directory, use `batch_optimize`:
+
+```python
+from pathlib import Path
+from pixopt import batch_optimize
+
+paths = [Path("a.jpg"), Path("b.png")]
+results = batch_optimize(paths, output_dir="./optimized", quality=80)
+```
+
 ---
 
 ## Format conversion
@@ -319,4 +329,24 @@ success_count = sum(1 for r in results if r.success)
 
 print(f"Processed {success_count}/{len(results)} files")
 print(f"Average savings: {total_saved / success_count:.1f}%")
+```
+
+### Using the `Pipeline` class
+
+For a fluent, chainable workflow, use `pixopt.Pipeline` instead of a manual loop:
+
+```python
+from pixopt import Pipeline
+
+result = (
+    Pipeline()
+    .open("photo.jpg")
+    .resize(max_width=1200)
+    .optimize(quality=85, output_format="WEBP")
+    .watermark_text("© pixopt")
+    .save("photo_optimized.webp")
+    .run()
+)
+
+print(f"Saved {result.savings_percent:.1f}%")
 ```

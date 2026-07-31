@@ -6,8 +6,9 @@ from io import BytesIO
 
 from PIL import Image
 
-from pixopt._units import MAX_QUALITY, MIN_QUALITY
+from pixopt._units import MAX_QUALITY, MIN_QUALITY, WHITE
 from pixopt.image_ops import build_save_kwargs, convert_mode, resize_image
+from pixopt.models import Anchor, FitMode
 
 __all__ = ["find_quality_for_target_size"]
 
@@ -20,6 +21,10 @@ def find_quality_for_target_size(
     max_width: int | None = None,
     max_height: int | None = None,
     keep_aspect_ratio: bool = True,
+    fit: FitMode | str | None = None,
+    anchor: Anchor | str = Anchor.CENTER,
+    aspect_ratio: tuple[int, int] | str | None = None,
+    background_color: tuple[int, int, int] | str = WHITE,
     strip_metadata: bool = True,
     progressive: bool = True,
     optimize: bool = True,
@@ -42,6 +47,10 @@ def find_quality_for_target_size(
         max_width: Maximum width in pixels, or None.
         max_height: Maximum height in pixels, or None.
         keep_aspect_ratio: Whether to keep the original aspect ratio.
+        fit: Resize fit mode.
+        anchor: Anchor point for cover/contain.
+        aspect_ratio: Target aspect ratio.
+        background_color: Background color for contain padding.
         strip_metadata: Whether to strip metadata before saving.
         progressive: Whether to use progressive encoding.
         optimize: Whether to optimize the output.
@@ -62,13 +71,11 @@ def find_quality_for_target_size(
         raise ValueError(f"target_size must be a positive integer, got {target_size}")
     if not MIN_QUALITY <= min_quality <= MAX_QUALITY:
         raise ValueError(
-            f"min_quality must be between {MIN_QUALITY} and {MAX_QUALITY}, "
-            f"got {min_quality}",
+            f"min_quality must be between {MIN_QUALITY} and {MAX_QUALITY}, got {min_quality}",
         )
     if not MIN_QUALITY <= max_quality <= MAX_QUALITY:
         raise ValueError(
-            f"max_quality must be between {MIN_QUALITY} and {MAX_QUALITY}, "
-            f"got {max_quality}",
+            f"max_quality must be between {MIN_QUALITY} and {MAX_QUALITY}, got {max_quality}",
         )
     if min_quality > max_quality:
         raise ValueError(
@@ -86,43 +93,50 @@ def find_quality_for_target_size(
         max_width=max_width,
         max_height=max_height,
         keep_aspect_ratio=keep_aspect_ratio,
+        fit=fit,
+        anchor=anchor,
+        aspect_ratio=aspect_ratio,
+        background_color=background_color,
     )
 
-    low = min_quality
-    high = max_quality
-    best_quality = low
-    best_diff = float("inf")
+    try:
+        low = min_quality
+        high = max_quality
+        best_quality = low
+        best_diff = float("inf")
 
-    for _ in range(max_iterations):
-        if low > high:
-            break
-        mid = (low + high) // 2
+        for _ in range(max_iterations):
+            if low > high:
+                break
+            mid = (low + high) // 2
 
-        buf = BytesIO()
-        kwargs = build_save_kwargs(
-            pillow_fmt,
-            quality=mid,
-            progressive=progressive,
-            optimize=optimize,
-            strip_metadata=strip_metadata,
-            lossless=lossless,
-        )
-        working.save(buf, format=pillow_fmt, **kwargs)
-        size = buf.tell()
+            with BytesIO() as buf:
+                kwargs = build_save_kwargs(
+                    pillow_fmt,
+                    quality=mid,
+                    progressive=progressive,
+                    optimize=optimize,
+                    strip_metadata=strip_metadata,
+                    lossless=lossless,
+                )
+                working.save(buf, format=pillow_fmt, **kwargs)
+                size = buf.tell()
 
-        diff = abs(size - target_size)
-        if diff < best_diff:
-            best_diff = diff
-            best_quality = mid
+            diff = abs(size - target_size)
+            if diff < best_diff:
+                best_diff = diff
+                best_quality = mid
 
-        # Within tolerance window?
-        if abs(size - target_size) <= target_size * tolerance:
-            best_quality = mid
-            break
+            # Within tolerance window?
+            if abs(size - target_size) <= target_size * tolerance:
+                best_quality = mid
+                break
 
-        if size > target_size:
-            high = mid - 1
-        else:
-            low = mid + 1
+            if size > target_size:
+                high = mid - 1
+            else:
+                low = mid + 1
 
-    return best_quality
+        return best_quality
+    finally:
+        working.close()

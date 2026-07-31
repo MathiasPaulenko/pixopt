@@ -7,7 +7,7 @@
 <p style="text-align: center;">
   <a href="https://pypi.org/project/pixopt/">![PyPI](https://img.shields.io/pypi/v/pixopt)</a>
   <a href="https://pypi.org/project/pixopt/">![Python](https://img.shields.io/pypi/pyversions/pixopt)</a>
-  <a href="https://github.com/MathiasPaulenko/pixopt/actions/workflows/bump-version.yml">![CI](https://img.shields.io/github/actions/workflow/status/MathiasPaulenko/pixopt/bump-version.yml?label=CI)</a>
+  <a href="https://github.com/MathiasPaulenko/pixopt/actions/workflows/ci.yml">![CI](https://img.shields.io/github/actions/workflow/status/MathiasPaulenko/pixopt/ci.yml?label=CI)</a>
   <a href="https://github.com/MathiasPaulenko/pixopt/blob/main/LICENSE">![License](https://img.shields.io/github/license/MathiasPaulenko/pixopt)</a>
 </p>
 

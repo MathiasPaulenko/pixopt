@@ -1,6 +1,6 @@
 # Installation
 
-pixopt requires **Python 3.10 or newer**.
+pixopt requires **Python 3.10, 3.11, 3.12, 3.13, or 3.14**.
 
 ## From PyPI (recommended)
 
@@ -8,7 +8,7 @@ pixopt requires **Python 3.10 or newer**.
 pip install pixopt
 ```
 
-This installs the core package with Pillow, Typer, Rich, and piexif.
+This installs the core package with Pillow, pillow-heif, Typer, Rich, piexif, and numpy.
 
 ## HEIC/HEIF support
 
@@ -20,6 +20,16 @@ pip install pixopt
 
 !!! note
     `pillow-heif` may require additional system libraries on Linux. See the [pillow-heif documentation](https://github.com/bigcat88/pillow_heif#installation) for platform-specific instructions.
+
+## PDF support (optional)
+
+For PDF import/export capabilities, install with the PDF extra:
+
+```bash
+pip install "pixopt[pdf]"
+```
+
+This installs [PyMuPDF](https://pymupdf.readthedocs.io/) (`fitz`) for PDF processing.
 
 ## System dependencies
 
@@ -73,7 +83,7 @@ pip list | grep pixopt
 
 ### HEIC/HEIF images fail to open
 
-Install `pillow-heif` and ensure your Pillow version is 10.0.0 or newer:
+Install `pillow-heif` and ensure your Pillow version is 12.3.0 or newer:
 
 ```bash
 pip install --upgrade Pillow pillow-heif

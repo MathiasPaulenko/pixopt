@@ -26,8 +26,11 @@ A clear and concise description of what you expected to happen.
 
 - OS: [e.g. Windows 11, macOS 14, Ubuntu 22.04]
 - Python version: [e.g. 3.12]
-- pixopt version: [e.g. 1.0.7]
-- Pillow version: [e.g. 10.0.0]
+- pixopt version: [e.g. 1.1.1]
+- Pillow version: [e.g. 12.3.0]
+- pillow-heif version: [e.g. 1.0.0]
+- numpy version: [e.g. 2.0.0]
+- PyMuPDF version (if using PDF features): [e.g. 1.23.0]
 
 ## Screenshots / Logs
 

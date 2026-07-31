@@ -2,17 +2,23 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Annotated
 
 import typer
-from PIL import Image, UnidentifiedImageError
-from PIL.ExifTags import Base
+from PIL import UnidentifiedImageError
 
 from pixopt.cli.app import app, console
-from pixopt.cli.output import _human_size
+from pixopt.inspect import inspect_image
 
-_EXIF_TAG_IDS = {t.value for t in Base}
+_JSON_FLAG = Annotated[
+    bool,
+    typer.Option(
+        "--json",
+        help="Output metadata as JSON instead of a rich table.",
+    ),
+]
 
 
 @app.command()
@@ -25,32 +31,55 @@ def info(
             resolve_path=True,
         ),
     ],
+    json_output: _JSON_FLAG = False,
 ) -> None:
-    """Show image metadata and properties without optimizing."""
+    """Show structured image metadata and properties without optimizing."""
     try:
-        with Image.open(source) as img:
-            console.print(f"[bold cyan]File:[/bold cyan]       {source}")
-            console.print(f"[bold cyan]Size:[/bold cyan]       {img.size[0]}x{img.size[1]} px")
-            console.print(f"[bold cyan]Mode:[/bold cyan]       {img.mode}")
-            console.print(f"[bold cyan]Format:[/bold cyan]     {img.format}")
-            size_str = _human_size(source.stat().st_size)
-            console.print(f"[bold cyan]File size:[/bold cyan]  {size_str}")
-
-            if img.format == "JPEG":
-                prog = "Yes" if img.info.get("progressive") else "No"
-                console.print(f"[bold cyan]Progressive:[/bold cyan] {prog}")
-
-            exif = img.getexif()
-            if exif:
-                console.print("\n[bold yellow]EXIF Metadata:[/bold yellow]")
-                for tag_id, value in exif.items():
-                    tag = Base(tag_id).name if tag_id in _EXIF_TAG_IDS else f"Tag {tag_id}"
-                    console.print(f"  {tag}: {value}")
-            else:
-                console.print("\n[bold yellow]EXIF Metadata:[/bold yellow] None")
+        info_data = inspect_image(source)
     except UnidentifiedImageError as exc:
         console.print(f"[bold red]Cannot identify image file:[/bold red] {source}")
         raise typer.Exit(1) from exc
-    except Exception as exc:
+    except FileNotFoundError as exc:
+        console.print(f"[bold red]File not found:[/bold red] {exc}")
+        raise typer.Exit(1) from exc
+    except Exception as exc:  # noqa: BLE001
         console.print(f"[bold red]Error reading {source}:[/bold red] {exc}")
         raise typer.Exit(1) from exc
+
+    if json_output:
+        console.print_json(json.dumps(info_data.to_dict(), default=str))
+        return
+
+    # Rich table output.
+    console.print(f"[bold cyan]File:[/bold cyan]          {info_data.file_path}")
+    console.print(f"[bold cyan]Format:[/bold cyan]        {info_data.format}")
+    console.print(
+        f"[bold cyan]Dimensions:[/bold cyan]    {info_data.width}x{info_data.height} px",
+    )
+    console.print(f"[bold cyan]Mode:[/bold cyan]          {info_data.mode}")
+    console.print(f"[bold cyan]File size:[/bold cyan]     {info_data.human_file_size}")
+
+    if info_data.dpi:
+        console.print(
+            f"[bold cyan]DPI:[/bold cyan]            {info_data.dpi[0]:.0f}x{info_data.dpi[1]:.0f}",
+        )
+    else:
+        console.print("[bold cyan]DPI:[/bold cyan]            N/A")
+
+    console.print(f"[bold cyan]Has alpha:[/bold cyan]     {'Yes' if info_data.has_alpha else 'No'}")
+    console.print(
+        f"[bold cyan]Animated:[/bold cyan]       {'Yes' if info_data.is_animated else 'No'}"
+        + (f" ({info_data.frame_count} frames)" if info_data.is_animated else ""),
+    )
+    console.print(
+        f"[bold cyan]ICC profile:[/bold cyan]   {'Yes' if info_data.icc_profile else 'No'}",
+    )
+    orientation = info_data.orientation if info_data.orientation else "None"
+    console.print(f"[bold cyan]Orientation:[/bold cyan]   {orientation}")
+
+    if info_data.exif:
+        console.print("\n[bold yellow]EXIF Metadata:[/bold yellow]")
+        for tag, value in info_data.exif.items():
+            console.print(f"  {tag}: {value}")
+    else:
+        console.print("\n[bold yellow]EXIF Metadata:[/bold yellow] None")

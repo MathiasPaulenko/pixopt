@@ -5,11 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from PIL import Image
-
+from pixopt._units import MAX_IMAGE_DIMENSION, MAX_SRCSET_WIDTHS
 from pixopt.constants import FORMAT_MAP, FORMAT_TO_EXT
+from pixopt.image_ops import _open_image
 from pixopt.models import OutputFormat
 from pixopt.optimizer import optimize_image
+from pixopt.utils import validate_no_parent_references
 
 __all__ = ["SrcsetImage", "generate_srcset_images"]
 
@@ -63,7 +64,19 @@ def generate_srcset_images(
     """
     source_path = Path(source)
     out_dir = Path(output_dir)
+    if error := validate_no_parent_references(out_dir, "output_dir"):
+        raise ValueError(error)
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    if not widths:
+        raise ValueError("widths must contain at least one positive value")
+
+    if len(widths) > MAX_SRCSET_WIDTHS:
+        raise ValueError(f"Too many srcset widths (max {MAX_SRCSET_WIDTHS})")
+
+    for w in widths:
+        if w < 1 or w > MAX_IMAGE_DIMENSION:
+            raise ValueError(f"width must be between 1 and {MAX_IMAGE_DIMENSION}, got {w}")
 
     fmt = _resolve_output_format(output_format)
     results: list[SrcsetImage] = []
@@ -71,7 +84,7 @@ def generate_srcset_images(
     pillow_fmt = FORMAT_MAP[fmt]
     ext = FORMAT_TO_EXT[pillow_fmt]
 
-    with Image.open(source_path) as img:
+    with _open_image(source_path, label="source") as img:
         img.load()
         orig_width = img.width
 

@@ -1,6 +1,6 @@
 # Contributing to pixopt
 
-Thank you for your interest in contributing! This document will help you get started.
+Thank you for your interest in contributing! This document will help you get started. For a more detailed guide, see [docs/contributing.md](docs/contributing.md).
 
 ## Development setup
 
@@ -29,12 +29,15 @@ pytest tests/ -v --cov=pixopt --cov-report=term-missing
 
 ## Code quality
 
-All changes should pass the configured linting, type checking and formatting checks:
+All changes should pass the configured linting, type checking, formatting, and security checks:
 
 ```bash
-ruff check pixopt tests
-ruff format pixopt tests
+ruff check .
+ruff format .
 mypy pixopt
+python -m pyright
+python -m bandit -r pixopt
+python -m pip_audit .
 ```
 
 ## Documentation
@@ -58,7 +61,7 @@ release workflow. Use prefixes such as `feat:`, `fix:`, `docs:`, `refactor:` or
 
 1. Fork the repository and create a feature branch.
 2. Make your changes, adding or updating tests where appropriate.
-3. Ensure `pytest`, `ruff check`, `mypy pixopt`, and `mkdocs build --strict` all pass.
+3. Ensure `pytest`, `ruff check`, `ruff format`, `mypy pixopt`, `python -m pyright`, `python -m bandit -r pixopt`, `python -m pip_audit .`, and `mkdocs build --strict` all pass.
 4. Update the documentation and `CHANGELOG.md` if needed.
 5. Submit a pull request with a clear description and link to any related issues.
 

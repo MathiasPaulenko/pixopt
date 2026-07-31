@@ -1,0 +1,10 @@
+include README.md
+include CHANGELOG.md
+include LICENSE
+include SECURITY.md
+include CODE_OF_CONDUCT.md
+include CONTRIBUTING.md
+include pyproject.toml
+include .editorconfig
+include MANIFEST.in
+recursive-include pixopt py.typed

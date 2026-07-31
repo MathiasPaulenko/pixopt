@@ -24,8 +24,11 @@ def resolve_output_format(
 
     """
     if fmt == OutputFormat.ORIGINAL:
-        original_ext = Path(img.filename if hasattr(img, "filename") else "").suffix.lower()
+        filename = getattr(img, "filename", None) or ""
+        original_ext = Path(filename).suffix.lower()
         pillow_fmt = EXT_TO_FORMAT.get(original_ext, img.format or "JPEG")
+        if pillow_fmt not in FORMAT_TO_EXT:
+            pillow_fmt = "JPEG"
         return original_ext or ".jpg", pillow_fmt
 
     if fmt == OutputFormat.AUTO:

@@ -19,11 +19,11 @@ Thank you for your interest in contributing to **pixopt**! We welcome bug report
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
+pip install -e ".[dev,docs]"
 ```
 
 !!! tip
-    The `[dev]` extra installs all development dependencies: pytest, ruff, mypy, python-semantic-release, pytest-cov.
+    The `[dev]` extra installs all development dependencies: pytest, ruff, mypy, pyright, bandit, pip-audit, python-semantic-release, pytest-cov.
 
 ---
 
@@ -53,10 +53,21 @@ pytest tests/ -v
 pytest tests/ -v --cov=pixopt --cov-report=term-missing
 
 # Run linter
-ruff check pixopt tests
+ruff check .
 
-# Run type checker
+# Run formatter
+ruff format .
+
+# Run type checkers
 mypy pixopt
+python -m pyright
+
+# Run security checks
+python -m bandit -r pixopt
+python -m pip_audit .
+
+# Build documentation
+mkdocs build --strict
 ```
 
 ### 4. Commit your changes

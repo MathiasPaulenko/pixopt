@@ -45,9 +45,11 @@ def test_p_palette_transparency_flattened_to_white(tmp_path: Path) -> None:
     with Image.open(output) as out:
         # The transparent pixel should be close to white, definitely not black
         transparent_pixel = out.getpixel((10, 10))
+        assert isinstance(transparent_pixel, tuple)
         assert all(c > 240 for c in transparent_pixel)
         # The red pixel should stay mostly red
         red_pixel = out.getpixel((100, 100))
+        assert isinstance(red_pixel, tuple)
         assert red_pixel[0] > 240 and red_pixel[1] < 30 and red_pixel[2] < 30
 
 
@@ -135,9 +137,7 @@ def test_adaptive_quality_rejects_invalid_bounds() -> None:
     """find_quality_for_target_size must reject invalid bounds, tolerance and iterations."""
     img = Image.new("RGB", (100, 100))
     with pytest.raises(ValueError, match="min_quality"):
-        find_quality_for_target_size(
-            img, "JPEG", 1000, min_quality=50, max_quality=30
-        )
+        find_quality_for_target_size(img, "JPEG", 1000, min_quality=50, max_quality=30)
     with pytest.raises(ValueError, match="max_quality"):
         find_quality_for_target_size(img, "JPEG", 1000, max_quality=200)
     with pytest.raises(ValueError, match="tolerance"):
@@ -152,7 +152,7 @@ def test_placeholder_invalid_type(tmp_path: Path) -> None:
     Image.new("RGB", (100, 100)).save(source)
 
     with pytest.raises(ValueError, match="placeholder_type"):
-        generate_placeholder(source, placeholder_type="invalid")
+        generate_placeholder(source, placeholder_type="invalid")  # type: ignore[reportArgumentType]
 
 
 def test_srcset_ignores_invalid_format_strings(tmp_path: Path) -> None:
@@ -176,7 +176,7 @@ def test_optimize_image_output_format_not_enum(tmp_path: Path) -> None:
     output = tmp_path / "out.jpg"
     Image.new("RGB", (100, 100)).save(source)
 
-    result = optimize_image(source, output, output_format="JPEG")
+    result = optimize_image(source, output, output_format="JPEG")  # type: ignore[reportArgumentType]
     assert result.success is False
     assert "outputformat" in (result.error or "").lower()
 
@@ -250,7 +250,9 @@ def test_strip_metadata_preserves_palette() -> None:
     clean = strip_metadata_pillow(img, "PNG")
     assert clean.getpixel((0, 0)) == 0
     assert clean.getpixel((10, 10)) == 1
-    assert list(clean.getpalette()[:6]) == [255, 0, 0, 0, 255, 0]
+    clean_palette = clean.getpalette()
+    assert clean_palette is not None
+    assert list(clean_palette[:6]) == [255, 0, 0, 0, 255, 0]
 
 
 def test_detect_optimal_format_corrupt_file(tmp_path: Path) -> None:
@@ -321,7 +323,7 @@ def test_comparison_html_works_with_svg(tmp_path: Path) -> None:
     result = generate_comparison_html(before, after, output)
     assert result == output
     assert output.exists()
-    assert 'width: 800px;' in output.read_text(encoding="utf-8")
+    assert "width: 800px;" in output.read_text(encoding="utf-8")
 
 
 def test_comparison_html_escapes_title(tmp_path: Path) -> None:
@@ -332,9 +334,7 @@ def test_comparison_html_escapes_title(tmp_path: Path) -> None:
     Image.new("RGB", (10, 10), (255, 0, 0)).save(before)
     Image.new("RGB", (10, 10), (0, 255, 0)).save(after)
 
-    generate_comparison_html(
-        before, after, output, title='<script>alert(1)</script>'
-    )
+    generate_comparison_html(before, after, output, title="<script>alert(1)</script>")
     content = output.read_text(encoding="utf-8")
     assert "&lt;script&gt;alert(1)&lt;/script&gt;" in content
 
@@ -346,14 +346,10 @@ def test_cli_optimize_rejects_non_positive_dimensions(tmp_path: Path) -> None:
     output = tmp_path / "out.jpg"
     Image.new("RGB", (100, 100)).save(source)
 
-    width_result = runner.invoke(
-        app, ["optimize", str(source), str(output), "--width", "0"]
-    )
+    width_result = runner.invoke(app, ["optimize", str(source), str(output), "--width", "0"])
     assert width_result.exit_code != 0
 
-    height_result = runner.invoke(
-        app, ["optimize", str(source), str(output), "--height", "-10"]
-    )
+    height_result = runner.invoke(app, ["optimize", str(source), str(output), "--height", "-10"])
     assert height_result.exit_code != 0
 
 

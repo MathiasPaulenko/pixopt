@@ -4,7 +4,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/pixopt)](https://pypi.org/project/pixopt/)
 [![Python versions](https://img.shields.io/pypi/pyversions/pixopt)](https://pypi.org/project/pixopt/)
-[![CI status](https://img.shields.io/github/actions/workflow/status/MathiasPaulenko/pixopt/bump-version.yml?label=CI)](https://github.com/MathiasPaulenko/pixopt/actions/workflows/bump-version.yml)
+[![CI status](https://img.shields.io/github/actions/workflow/status/MathiasPaulenko/pixopt/ci.yml?label=CI)](https://github.com/MathiasPaulenko/pixopt/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/MathiasPaulenko/pixopt)](https://codecov.io/gh/MathiasPaulenko/pixopt)
 [![License](https://img.shields.io/github/license/MathiasPaulenko/pixopt)](https://github.com/MathiasPaulenko/pixopt/blob/main/LICENSE)
 
@@ -19,6 +19,12 @@
 - [Overview](#overview)
 - [Features](#features)
 - [Installation](#installation)
+  - [Requirements](#requirements)
+  - [From PyPI](#from-pypi)
+  - [With HEIC/HEIF support](#with-heicheif-support)
+  - [With PDF support](#with-pdf-support)
+  - [From source](#from-source)
+  - [Verify installation](#verify-installation)
 - [Quick Start](#quick-start)
 - [CLI Usage](#cli-usage)
   - [Commands](#commands)
@@ -39,6 +45,7 @@
 - [Development](#development)
 - [Contributing](#contributing)
 - [Changelog](#changelog)
+- [Acknowledgements](#acknowledgements)
 - [License](#license)
 
 ---
@@ -71,7 +78,13 @@ Whether you are a developer automating image pipelines, a designer preparing ass
 
 ## Installation
 
-### From PyPI (recommended)
+### Requirements
+
+- **Python**: 3.10, 3.11, 3.12, 3.13, or 3.14
+- **Core dependencies**: Pillow (>=12.3.0), pillow-heif, typer, rich, piexif, numpy
+- **Optional**: PyMuPDF for PDF import/export (`pip install pixopt[pdf]`)
+
+### From PyPI
 
 ```bash
 pip install pixopt
@@ -79,8 +92,16 @@ pip install pixopt
 
 ### With HEIC/HEIF support
 
+`pillow-heif` is included as a core dependency, so HEIC/HEIF support is available out of the box.
+
 ```bash
-pip install pixopt pillow-heif
+pip install pixopt
+```
+
+### With PDF support
+
+```bash
+pip install "pixopt[pdf]"
 ```
 
 ### From source
@@ -88,7 +109,7 @@ pip install pixopt pillow-heif
 ```bash
 git clone https://github.com/MathiasPaulenko/pixopt.git
 cd pixopt
-pip install -e ".[dev]"
+pip install -e ".[dev,docs]"
 ```
 
 ### Verify installation
@@ -164,7 +185,7 @@ Convert an image to a multi-resolution ICO favicon.
 
 ```bash
 pixopt favicon logo.png favicon.ico
-pixopt favicon logo.png --size 16 --size 32 --size 48
+pixopt favicon logo.png favicon.ico --size 16 --size 32 --size 48
 ```
 
 #### `info`
@@ -349,15 +370,25 @@ result = optimize_image(
 ### Adaptive quality
 
 ```python
+from PIL import Image
 from pixopt import optimize_image
+from pixopt.adaptive_quality import find_quality_for_target_size
 from pixopt.models import OutputFormat
+
+with Image.open("photo.jpg") as img:
+    img.load()
+    quality = find_quality_for_target_size(
+        img, "JPEG", target_size=50 * 1024
+    )
 
 result = optimize_image(
     "photo.jpg",
     "photo_optimized.jpg",
     output_format=OutputFormat.JPEG,
-    target_size=50,  # KB
+    quality=quality,
 )
+
+print(f"Use quality {quality}")
 ```
 
 ### Placeholders
@@ -466,11 +497,15 @@ Run tests:
 pytest tests/ -v
 ```
 
-Run linters:
+Run linters, type checkers, format check, and security checks:
 
 ```bash
-ruff check pixopt tests
+ruff check .
+ruff format . --check
 mypy pixopt
+python -m pyright
+python -m bandit -r pixopt
+python -m pip_audit .
 ```
 
 Build documentation locally:
@@ -500,6 +535,12 @@ pytest
 ## Changelog
 
 See [CHANGELOG.md](https://github.com/MathiasPaulenko/pixopt/blob/main/CHANGELOG.md) for the full history of changes.
+
+---
+
+## Acknowledgements
+
+pixopt is built on top of the excellent Python imaging and CLI ecosystem, especially [Pillow](https://python-pillow.org/), [pillow-heif](https://github.com/bigcat88/pillow_heif), [Typer](https://typer.tiangolo.com/), [Rich](https://github.com/Textualize/rich), [piexif](https://github.com/hMatoba/piexif), and [NumPy](https://numpy.org/).
 
 ---
 

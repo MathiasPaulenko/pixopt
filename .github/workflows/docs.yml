@@ -2,7 +2,7 @@ name: Docs
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -37,7 +37,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: output/site/
+          path: site/
 
   deploy:
     needs: build

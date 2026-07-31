@@ -7,6 +7,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed `inventory.py` `smallest_size` logic and narrowed exception handling.
+- Fixed division-by-zero and invalid-dimension guards in `image_ops.py`, `watermark.py`, and `sprite.py`.
+- Hardened `_open_image` in `image_ops.py` to open a binary file handle and use `os.fstat`, removing a TOCTOU race between size checks and opening.
+- Replaced `source_path.exists()` / `source_path.stat()` checks in `optimizer.py` with a single `try/except stat()` call.
+- Hardened `presets.py` value validation for `fit`, `anchor`, `background-color`, `format`, and numeric bounds.
+- Validated `watermark` path in `add_image_watermark` and `font_path` access with `try/except stat()`.
+- Ensured image resources created by watermark, placeholder, favicon conversion, PDF import, and benchmark AVIF checks are closed.
+- Fixed `async_batch_optimize` to propagate progress-callback exceptions and convert unexpected `asyncio.gather` exceptions into `OptimizationResult` objects.
+- Added `validate_no_parent_references` for `benchmark` source, `inventory` directories, and `pipeline` source paths.
+- Replaced `Path.exists()` / `Path.stat()` checks with `try/except stat()` in `benchmark` and `inventory`.
+- Ensured `sprite.py`, `pdf_io.py`, and `optimizer.py` close all opened image resources in `finally` blocks.
+- Fixed `pipeline.py` `save()` to validate output paths and use the system temp directory for watermark temporary files.
+
+### Added
+
+- Regression tests for inventory empty scans, aspect-ratio validation, watermark text length and invalid dimensions, async progress callbacks, and invalid preset values.
+
+## [1.1.1] - 2026-07-31
+
+### Fixed
+
+- Corrected CLI `--auto-orient`/`--keep-orientation` handling when used with presets: explicit flags now properly override preset values.
+- Fixed mypy strict-mode errors across the package (Image/ImageFile assignments, missing generic type arguments, protocol call signatures, union return types).
+- Removed all ruff lint and formatting violations.
+- Fixed `async_batch_optimize` progress callback to use `ProgressInfo`.
+- Fixed `batch_optimize` parameter defaults and forwarding to `optimize_image`.
+- Hardened `pipeline.py` watermark steps to remove temporary files even when an operation fails.
+- Added fast exact-duplicate detection path in `find_duplicates` for `threshold=0`, reducing worst-case complexity from O(n²) to O(n log n).
+- Added early-exit for identical images in `compute_ssim` to avoid unnecessary sliding-window work.
+
+### Added
+
+- Made PyMuPDF (`fitz`) an optional dependency; PDF tests skip when it is unavailable.
+- Added input and resource limits for safety: max input/base64/preset/PDF sizes, max PDF pages, max image dimensions, and max srcset widths.
+- Added validation for font files and image dimensions in watermark operations.
+- Added output path escape validation in `optimize_directory`.
+- Added `MAX_INPUT_BYTES` guard in `optimize_image`.
+- Added image-dimension validation (`MAX_IMAGE_DIMENSION`) to `optimize_image`, `convert_to_favicon`, `optimize_bytes`, `smart_format`, and `placeholder`.
+- Hardened path handling: `output`, `backup_dir`, and `output_dir` in `optimize_image`, `optimize_directory`, `batch_optimize`, and `async_batch_optimize` now reject parent-directory references.
+- Fixed PDF resource leak in `pdf_io.py` and ensure the `fitz` document is always closed.
+- Fixed `bytes_to_image` and `base64_to_image` to load and close the image before returning it, avoiding resource leaks while keeping the image usable.
+- Fixed `pipeline.py` resource leaks by using `Image.open` context managers and closing the final image.
+- Fixed `SVG` attribute parsing to handle the case where no capture group matches.
+- Fixed `format_resolver` for in-memory images without a filename or with unknown formats.
+- Made `WHITE` constant canonical and removed duplicates in `io_bytes.py` and `sprite.py`.
+- Added missing CLI command imports in `pixopt.cli.commands.__init__`.
+- Added missing public API symbols (`load_custom_presets`, `find_quality_for_target_size`, `StructuredFormatter`) to `pixopt.__all__`.
+- Added `__all__` declarations to `constants.py`, `utils.py`, `svg_optimizer.py`, `image_ops.py`, `inspect.py`, and `presets.py`.
+- Added `numpy` to core dependencies and `PyMuPDF` optional dependency for `pdf`.
+- Added input validation and resource limits across public APIs:
+  - `BundleOptions` validates dimensions, quality, palette count, srcset/favicon sizes.
+  - `create_sprite` and `create_contact_sheet` validate cell/column/padding dimensions.
+  - `pdf_to_images` validates `dpi` against `MAX_PDF_DPI`.
+  - Perceptual hashing validates resize size against `MAX_HASH_SIZE` and caps duplicate scan length with `MAX_DUPLICATE_SCAN`.
+  - `generate_blurhash` and `generate_lqip_datauri` validate component counts and dimensions.
+- Added `MAX_BLURHASH_COMPONENTS`, `MAX_BUNDLE_PALETTE_N`, `MAX_DUPLICATE_SCAN`, `MAX_HASH_SIZE`, and `MAX_PDF_DPI` to `pixopt._units`.
+- Hardened CLI option validation with Typer `min`/`max` constraints and in-function checks for `bundle`, `sprite`, `pdf`, `placeholder`, `srcset`, and `duplicates` commands.
+- Centralized path-traversal protection in `pixopt.utils.validate_no_parent_references` and applied it across `optimizer`, `bundle`, `sprite`, `pdf_io`, `srcset_generator`, `html_comparison`, `nextgen`, `pipeline`, `watermark`, and all CLI commands that create directories or write files.
+- Added regression tests for path traversal, oversized dimensions, invalid `max_concurrency`, and malformed SVG attributes.
+- Added resource limits to prevent unbounded memory in animated GIF conversion (`MAX_GIF_FRAMES`, `MAX_GIF_TOTAL_PIXELS`).
+- Added `MAX_SPRITE_IMAGES`, `MAX_FAVICON_SIZES`, and sprite/contact-sheet/favicon dimension limits.
+- Avoided full-resolution copies during favicon generation.
+- Added `MAX_HTML_BASE64_BYTES` limit in HTML comparison generator.
+- Added per-width validation to `generate_srcset_images`.
+- Added `MAX_INPUT_BYTES` guards to perceptual hashing and quality comparison.
+- Centralized image opening in a private `_open_image` context manager that applies path-traversal, size, dimension, and decompression-bomb guards everywhere images are loaded.
+- Hardened `pipeline.py` watermark font/watermark paths and preset file path against parent-directory references.
+- Replaced predictable pipeline watermark temp file names with `tempfile.mkstemp`.
+- Added resource budgets: `MAX_SSIM_PIXELS`, `MAX_NEAR_DUPLICATE_SCAN`, `MAX_SPRITE_TOTAL_PIXELS`, `MAX_PDF_IMAGES`/`MAX_PDF_TOTAL_PIXELS`, `MAX_SCAN_ENTRIES`, and `MAX_DIRECTORY_SCAN`.
+- Added `MAX_IMAGE_DIMENSION` validation to PDF import.
+- Hardened watermark input validation for `padding`, `font_size`, and `scale`.
+- Hardened `phash` `highfreq_factor` validation.
+- Expanded regression tests for path traversal, resource limits, font validation, and format resolver/SVG edge cases.
+- Made `validate_optimize_params` a public API.
+- Converted `PlaceholderType` to an `Enum` for consistency with other public types and updated the CLI `placeholder` command to use it.
+- Added `__version__` to the public `__all__` exports.
+- Added smart-format helpers (`has_transparency`, `count_unique_colors`, `is_photo`) to public exports.
+- Added `Base64Result` dataclass for typed base64 optimization results and updated tests to use it.
+- Updated package metadata to PEP 639 license format and added Python 3.13/3.14 classifiers.
+- Updated `numpy` lower bound to `>=2.0.0` for Python 3.14 compatibility.
+
 ## [1.0.7] - 2026-07-30
 
 ### Added

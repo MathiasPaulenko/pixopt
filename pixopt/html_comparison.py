@@ -6,9 +6,9 @@ import base64
 import html
 from pathlib import Path
 
-from PIL import Image
-
-from pixopt._units import BYTES_PER_KB, BYTES_PER_MB, PERCENT
+from pixopt._units import BYTES_PER_KB, BYTES_PER_MB, MAX_HTML_BASE64_BYTES, PERCENT
+from pixopt.image_ops import _open_image
+from pixopt.utils import validate_no_parent_references
 
 __all__ = ["generate_comparison_html"]
 
@@ -141,6 +141,11 @@ def _img_to_base64(path: Path) -> str:
     ext = path.suffix.lower().lstrip(".")
     mime_subtype = ext.replace("jpg", "jpeg") if ext != "svg" else "svg+xml"
     mime = "image/svg+xml" if ext == "svg" else f"image/{mime_subtype}"
+    size = path.stat().st_size
+    if size > MAX_HTML_BASE64_BYTES:
+        raise ValueError(
+            f"Image too large for HTML base64 embedding: {size} bytes (max {MAX_HTML_BASE64_BYTES})"
+        )
     data = path.read_bytes()
     b64 = base64.b64encode(data).decode("ascii")
     return f"data:{mime};base64,{b64}"
@@ -164,11 +169,15 @@ def generate_comparison_html(
         Path to the generated HTML file.
 
     """
+    output_html = Path(output_html)
+    if error := validate_no_parent_references(output_html, "output_html"):
+        raise ValueError(error)
+
     before_b64 = _img_to_base64(before_path)
     after_b64 = _img_to_base64(after_path)
 
     try:
-        with Image.open(before_path) as img:
+        with _open_image(before_path, label="source") as img:
             width = img.width
     except (OSError, ValueError):
         # Pillow cannot read the file (e.g. an SVG). Use a sensible default

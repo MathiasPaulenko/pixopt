@@ -2,7 +2,7 @@ site_name: pixopt
 site_url: https://mathiaspaulenko.github.io/pixopt/
 site_description: A powerful Python library and CLI tool for optimizing images for web and storage.
 site_author: pixopt contributors
-site_dir: output/site
+site_dir: site
 
 theme:
   name: material

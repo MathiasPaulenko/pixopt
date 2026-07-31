@@ -4,6 +4,10 @@ from __future__ import annotations
 
 import re
 
+from pixopt._units import MAX_INPUT_BYTES
+
+__all__ = ["optimize_svg"]
+
 # Attribute values that match the SVG initial value and can be removed safely.
 # Only non-inherited properties can be removed without context; inherited
 # properties like fill or stroke would break documents where a parent element
@@ -97,7 +101,7 @@ def _minify_tag(match: re.Match[str]) -> str:
     for attr_match in _ATTR_RE.finditer(tag):
         attr_name = attr_match.group(1)
         attr_key = attr_name.lower()
-        value = next(g for g in attr_match.group(2, 3, 4) if g is not None).strip()
+        value = next((g for g in attr_match.group(2, 3, 4) if g is not None), "").strip()
 
         if attr_key in _DEFAULT_ATTRS and value.lower() in _DEFAULT_ATTRS[attr_key]:
             continue
@@ -129,6 +133,9 @@ def optimize_svg(data: str | bytes) -> str:
     """
     if isinstance(data, bytes):
         data = data.decode("utf-8")
+
+    if len(data) > MAX_INPUT_BYTES:
+        raise ValueError(f"SVG input too large (max {MAX_INPUT_BYTES} bytes)")
 
     # Remove XML declaration.
     data = re.sub(r"<\?xml[^?]*\?>", "", data)

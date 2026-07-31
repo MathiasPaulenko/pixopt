@@ -9,6 +9,7 @@ from urllib.parse import quote
 
 import typer
 
+from pixopt._units import MAX_IMAGE_DIMENSION, MAX_SRCSET_WIDTHS
 from pixopt.cli.app import app, console
 from pixopt.cli.options import (
     LosslessOption,
@@ -18,6 +19,7 @@ from pixopt.cli.options import (
     StripOption,
 )
 from pixopt.srcset_generator import generate_srcset_images
+from pixopt.utils import validate_no_parent_references
 
 
 @app.command()
@@ -68,6 +70,12 @@ def srcset(
     ] = None,
 ) -> None:
     """Generate responsive image variants and an optional HTML srcset snippet."""
+    if error := validate_no_parent_references(output_dir, "output_dir"):
+        console.print(f"[bold red]{error}[/bold red]")
+        raise typer.Exit(1)
+    if html is not None and (error := validate_no_parent_references(html, "html")):
+        console.print(f"[bold red]{error}[/bold red]")
+        raise typer.Exit(1)
     output_dir = output_dir.resolve()
 
     valid_formats = {"webp", "jpeg", "png", "avif"}
@@ -85,6 +93,14 @@ def srcset(
 
     if not widths:
         console.print("[bold red]No valid widths provided.[/bold red]")
+        raise typer.Exit(1)
+
+    if len(widths) > MAX_SRCSET_WIDTHS:
+        console.print(f"[bold red]Too many widths (max {MAX_SRCSET_WIDTHS}).[/bold red]")
+        raise typer.Exit(1)
+
+    if any(w < 1 or w > MAX_IMAGE_DIMENSION for w in widths):
+        console.print(f"[bold red]Widths must be between 1 and {MAX_IMAGE_DIMENSION}.[/bold red]")
         raise typer.Exit(1)
 
     variants = generate_srcset_images(
@@ -139,6 +155,9 @@ def srcset(
     console.print(html_snippet)
 
     if html is not None:
+        if error := validate_no_parent_references(html, "html"):
+            console.print(f"[bold red]{error}[/bold red]")
+            raise typer.Exit(1)
         html = html.resolve()
         html.write_text(html_snippet + "\n", encoding="utf-8")
         console.print(f"\n[bold green]Snippet saved to[/bold green] {html}")

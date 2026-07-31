@@ -1,5 +1,7 @@
 """Tests for pixopt.optimizer."""
 
+from __future__ import annotations
+
 from io import BytesIO
 from pathlib import Path
 
@@ -8,15 +10,6 @@ from PIL import Image
 
 from pixopt.models import OutputFormat
 from pixopt.optimizer import optimize_directory, optimize_image
-
-
-@pytest.fixture
-def sample_image(tmp_path: Path) -> Path:
-    """Create a simple test image."""
-    img_path = tmp_path / "test.jpg"
-    img = Image.new("RGB", (800, 600), color=(255, 0, 0))
-    img.save(img_path, quality=95)
-    return img_path
 
 
 def test_optimize_image_reduces_size(sample_image: Path, tmp_path: Path) -> None:
@@ -98,6 +91,7 @@ def test_optimize_directory_recursive(tmp_path: Path) -> None:
 
 def test_change_extension_converts_format(tmp_path: Path) -> None:
     from pixopt.optimizer import change_extension
+
     src = tmp_path / "test.png"
     Image.new("RGB", (100, 100), color=(0, 255, 0)).save(src)
     out = tmp_path / "test.webp"
@@ -110,6 +104,7 @@ def test_change_extension_converts_format(tmp_path: Path) -> None:
 
 def test_convert_to_favicon(tmp_path: Path) -> None:
     from pixopt.optimizer import convert_to_favicon
+
     src = tmp_path / "source.png"
     Image.new("RGBA", (256, 256), color=(0, 0, 255, 128)).save(src)
     out = tmp_path / "favicon.ico"
@@ -125,13 +120,14 @@ def test_convert_to_favicon(tmp_path: Path) -> None:
 
 def test_optimize_svg(tmp_path: Path) -> None:
     from pixopt.optimizer import optimize_image
+
     src = tmp_path / "test.svg"
     raw = (
         '<?xml version="1.0"?>\n'
-        '<!-- comment -->\n'
+        "<!-- comment -->\n"
         '<svg  width="100"  height="100"   fill="black"  opacity="1" >\n'
         '  <rect x="10.123456" y="20.999999" width="50" height="50" />\n'
-        '</svg>'
+        "</svg>"
     )
     src.write_text(raw, encoding="utf-8")
     out = tmp_path / "test.min.svg"
@@ -150,6 +146,7 @@ def test_optimize_svg(tmp_path: Path) -> None:
 def test_animated_gif_to_webp(tmp_path: Path) -> None:
     from pixopt.models import OutputFormat
     from pixopt.optimizer import optimize_image
+
     src = tmp_path / "animated.gif"
     frames = [Image.new("RGB", (100, 100), color=(i * 50, 0, 0)) for i in range(3)]
     frames[0].save(
@@ -168,14 +165,15 @@ def test_animated_gif_to_webp(tmp_path: Path) -> None:
 
 
 def test_heic_to_jpeg(tmp_path: Path) -> None:
-    pytest = __import__("pytest")
     try:
         from pillow_heif import register_heif_opener
+
         register_heif_opener()
     except Exception:
         pytest.skip("pillow-heif not available")
 
     from pixopt.optimizer import optimize_image
+
     src = tmp_path / "test.heic"
     img = Image.new("RGB", (200, 200), color=(0, 128, 0))
     img.save(src, format="HEIF")
@@ -191,6 +189,7 @@ def test_heic_to_jpeg(tmp_path: Path) -> None:
 def test_lossless_webp(tmp_path: Path) -> None:
     from pixopt.models import OutputFormat
     from pixopt.optimizer import optimize_image
+
     src = tmp_path / "test.png"
     Image.new("RGBA", (100, 100), color=(0, 255, 0, 128)).save(src)
     out = tmp_path / "test.webp"
@@ -206,6 +205,7 @@ def test_lossless_webp(tmp_path: Path) -> None:
 def test_generate_comparison_html(tmp_path: Path) -> None:
     from pixopt.html_comparison import generate_comparison_html
     from pixopt.optimizer import optimize_image
+
     src = tmp_path / "before.jpg"
     Image.new("RGB", (200, 200), color=(255, 0, 0)).save(src, quality=95)
     after = tmp_path / "after.jpg"
@@ -224,14 +224,19 @@ def test_generate_comparison_html(tmp_path: Path) -> None:
 def test_adaptive_quality_target_size(tmp_path: Path) -> None:
     import random
 
+    random.seed(0)
+
     from PIL import Image
 
     from pixopt.adaptive_quality import find_quality_for_target_size
+
     src = tmp_path / "test.jpg"
     # Create a more complex image with noise so JPEG sizes vary widely
     img = Image.new("RGB", (800, 800))
-    pixels = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-              for _ in range(800 * 800)]
+    pixels = [
+        (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        for _ in range(800 * 800)
+    ]
     img.putdata(pixels)
     img.save(src, quality=95)
 
@@ -263,6 +268,7 @@ def test_adaptive_quality_target_size(tmp_path: Path) -> None:
 
 def test_generate_srcset(tmp_path: Path) -> None:
     from pixopt.srcset_generator import generate_srcset_images
+
     src = tmp_path / "hero.jpg"
     img = Image.new("RGB", (1200, 800), color=(0, 128, 255))
     img.save(src, quality=95)
@@ -292,6 +298,7 @@ def test_generate_srcset(tmp_path: Path) -> None:
 
 def test_placeholder_color(tmp_path: Path) -> None:
     from pixopt.placeholder import generate_placeholder
+
     src = tmp_path / "test.jpg"
     Image.new("RGB", (200, 200), color=(255, 128, 64)).save(src)
     color = generate_placeholder(src, placeholder_type="color")
@@ -301,6 +308,7 @@ def test_placeholder_color(tmp_path: Path) -> None:
 
 def test_placeholder_lqip(tmp_path: Path) -> None:
     from pixopt.placeholder import generate_placeholder
+
     src = tmp_path / "test.jpg"
     Image.new("RGB", (200, 200), color=(255, 128, 64)).save(src)
     lqip = generate_placeholder(src, placeholder_type="lqip")
@@ -310,6 +318,7 @@ def test_placeholder_lqip(tmp_path: Path) -> None:
 
 def test_placeholder_blurhash(tmp_path: Path) -> None:
     from pixopt.placeholder import generate_placeholder
+
     src = tmp_path / "test.jpg"
     Image.new("RGB", (200, 200), color=(255, 128, 64)).save(src)
     bh = generate_placeholder(src, placeholder_type="blurhash")
@@ -320,11 +329,16 @@ def test_placeholder_blurhash(tmp_path: Path) -> None:
 def test_smart_format_photo(tmp_path: Path) -> None:
     import random
 
+    random.seed(0)
+
     from pixopt.smart_format import detect_optimal_format
+
     src = tmp_path / "photo.jpg"
     img = Image.new("RGB", (400, 400))
-    pixels = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-              for _ in range(400 * 400)]
+    pixels = [
+        (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        for _ in range(400 * 400)
+    ]
     img.putdata(pixels)
     img.save(src)
     fmt = detect_optimal_format(src)
@@ -333,6 +347,7 @@ def test_smart_format_photo(tmp_path: Path) -> None:
 
 def test_smart_format_transparent(tmp_path: Path) -> None:
     from pixopt.smart_format import detect_optimal_format
+
     src = tmp_path / "icon.png"
     Image.new("RGBA", (100, 100), color=(0, 255, 0, 128)).save(src)
     fmt = detect_optimal_format(src)
@@ -341,6 +356,7 @@ def test_smart_format_transparent(tmp_path: Path) -> None:
 
 def test_backup_and_min_size(tmp_path: Path) -> None:
     from pixopt.optimizer import optimize_image
+
     src = tmp_path / "test.jpg"
     Image.new("RGB", (100, 100), color=(0, 128, 0)).save(src, quality=95)
     backup_dir = tmp_path / "backups"
@@ -357,3 +373,187 @@ def test_backup_and_min_size(tmp_path: Path) -> None:
     assert "Skipped" in (result.error or "")
     # Backup should still exist
     assert (backup_dir / "test.jpg").exists()
+
+
+def test_optimize_image_output_parent_reference_rejected(tmp_path: Path) -> None:
+    src = tmp_path / "test.jpg"
+    Image.new("RGB", (100, 100)).save(src)
+    out = tmp_path / ".." / "escaped.jpg"
+    result = optimize_image(src, out)
+    assert result.success is False
+    assert "parent-directory" in (result.error or "").lower()
+
+
+def test_optimize_image_backup_parent_reference_rejected(tmp_path: Path) -> None:
+    src = tmp_path / "test.jpg"
+    Image.new("RGB", (100, 100)).save(src)
+    out = tmp_path / "out.jpg"
+    result = optimize_image(src, out, backup_dir=tmp_path / ".." / "backups")
+    assert result.success is False
+    assert "parent-directory" in (result.error or "").lower()
+
+
+def test_optimize_image_source_parent_reference_rejected(tmp_path: Path) -> None:
+    src = tmp_path / ".." / "test.jpg"
+    result = optimize_image(src, tmp_path / "out.jpg")
+    assert result.success is False
+    assert "parent-directory" in (result.error or "").lower()
+
+
+def test_optimize_image_dimensions_too_large(tmp_path: Path) -> None:
+    from pixopt._units import MAX_IMAGE_DIMENSION
+
+    src = tmp_path / "huge.jpg"
+    Image.new("RGB", (MAX_IMAGE_DIMENSION + 1, 100)).save(src)
+    out = tmp_path / "out.jpg"
+    result = optimize_image(src, out)
+    assert result.success is False
+    assert "too large" in (result.error or "").lower()
+
+
+def test_optimize_directory_output_parent_reference_rejected(tmp_path: Path) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    Image.new("RGB", (100, 100)).save(src / "test.jpg")
+    out_dir = tmp_path / ".." / "out"
+    with pytest.raises(ValueError, match="parent-directory"):
+        optimize_directory(src, output_dir=out_dir)
+
+
+def test_optimize_svg_malformed_attribute(tmp_path: Path) -> None:
+    from pixopt.svg_optimizer import optimize_svg
+
+    svg = '<svg width="100" height="100"><rect x="10" /></svg>'
+    result = optimize_svg(svg)
+    assert "<svg" in result
+
+
+def test_generate_comparison_html_parent_reference_rejected(
+    sample_image: Path, tmp_path: Path
+) -> None:
+    from pixopt.html_comparison import generate_comparison_html
+
+    src = tmp_path / "before.jpg"
+    Image.new("RGB", (100, 100)).save(src)
+    out = tmp_path / ".." / "comp.html"
+    with pytest.raises(ValueError, match="parent-directory"):
+        generate_comparison_html(src, src, out)
+
+
+def test_nextgen_parent_reference_rejected(tmp_path: Path) -> None:
+    from pixopt.nextgen import convert_to_nextgen
+
+    src = tmp_path / "test.jpg"
+    Image.new("RGB", (100, 100)).save(src)
+    out = tmp_path / ".." / "out.jxl"
+    with pytest.raises(ValueError, match="parent-directory"):
+        convert_to_nextgen(src, out, fmt="jxl")
+
+
+def test_pipeline_parent_reference_rejected(tmp_path: Path) -> None:
+    from pixopt.pipeline import Pipeline
+
+    src = tmp_path / "test.jpg"
+    Image.new("RGB", (100, 100)).save(src)
+    out = tmp_path / ".." / "out.webp"
+    with pytest.raises(ValueError, match="parent-directory"):
+        Pipeline().open(src).save(out).run()
+
+
+def test_optimize_image_input_too_large(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("pixopt.optimizer.MAX_INPUT_BYTES", 10)
+    src = tmp_path / "test.jpg"
+    Image.new("RGB", (100, 100)).save(src, quality=90)
+    out = tmp_path / "out.jpg"
+    result = optimize_image(src, out)
+    assert not result.success
+    assert "too large" in (result.error or "").lower()
+
+
+def test_optimize_image_dimensions_too_large_low_limit(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("pixopt.image_ops.MAX_IMAGE_DIMENSION", 50)
+    src = tmp_path / "huge.jpg"
+    Image.new("RGB", (100, 100)).save(src)
+    out = tmp_path / "out.jpg"
+    result = optimize_image(src, out)
+    assert not result.success
+    assert "dimensions too large" in (result.error or "").lower()
+
+
+def test_optimize_image_animated_gif_too_many_frames(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("pixopt.optimizer.MAX_GIF_FRAMES", 1)
+    gif_path = tmp_path / "anim.gif"
+    frames = [Image.new("RGB", (100, 100), color=(i * 50, 0, 0)) for i in range(2)]
+    frames[0].save(gif_path, save_all=True, append_images=frames[1:], duration=100, loop=0)
+    out_path = tmp_path / "out"
+    result = optimize_image(
+        gif_path,
+        out_path.with_suffix(".webp"),
+        output_format=OutputFormat.WEBP,
+    )
+    assert not result.success
+    assert "too many frames" in (result.error or "").lower()
+
+
+def test_optimize_image_animated_gif_total_pixels_exceeded(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("pixopt.optimizer.MAX_GIF_TOTAL_PIXELS", 1000)
+    gif_path = tmp_path / "anim.gif"
+    frames = [Image.new("RGB", (100, 100), color=(i * 50, 0, 0)) for i in range(2)]
+    frames[0].save(gif_path, save_all=True, append_images=frames[1:], duration=100, loop=0)
+    out_path = tmp_path / "out"
+    result = optimize_image(
+        gif_path,
+        out_path.with_suffix(".webp"),
+        output_format=OutputFormat.WEBP,
+    )
+    assert not result.success
+    error = (result.error or "").lower()
+    assert "exceeds" in error or "pixel budget" in error
+
+
+def test_convert_to_favicon_output_parent_reference_rejected(tmp_path: Path) -> None:
+    from pixopt.optimizer import convert_to_favicon
+
+    src = tmp_path / "logo.png"
+    Image.new("RGBA", (100, 100)).save(src)
+    out = tmp_path / ".." / "favicon.ico"
+    result = convert_to_favicon(src, out)
+    assert not result.success
+    assert "parent" in (result.error or "").lower()
+
+
+def test_convert_to_favicon_dimensions_too_large(tmp_path: Path, monkeypatch) -> None:
+    from pixopt.optimizer import convert_to_favicon
+
+    monkeypatch.setattr("pixopt.image_ops.MAX_IMAGE_DIMENSION", 50)
+    src = tmp_path / "logo.png"
+    Image.new("RGB", (100, 100)).save(src)
+    out = tmp_path / "favicon.ico"
+    result = convert_to_favicon(src, out)
+    assert not result.success
+    assert "dimensions too large" in (result.error or "").lower()
+
+
+def test_html_base64_image_too_large(tmp_path: Path, monkeypatch) -> None:
+    from pixopt.html_comparison import generate_comparison_html
+
+    monkeypatch.setattr("pixopt.html_comparison.MAX_HTML_BASE64_BYTES", 10)
+    before = tmp_path / "before.jpg"
+    after = tmp_path / "after.jpg"
+    Image.new("RGB", (100, 100)).save(before)
+    Image.new("RGB", (100, 100)).save(after)
+    with pytest.raises(ValueError, match="too large|max"):
+        generate_comparison_html(before, after, tmp_path / "compare.html")
+
+
+def test_optimize_directory_too_many(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    from pixopt.optimizer import optimize_directory
+
+    monkeypatch.setattr("pixopt.optimizer.MAX_DIRECTORY_SCAN", 1)
+    src = tmp_path / "src"
+    src.mkdir()
+    Image.new("RGB", (50, 50)).save(src / "a.jpg")
+    Image.new("RGB", (50, 50)).save(src / "b.jpg")
+
+    with pytest.raises(ValueError, match="Too many"):
+        optimize_directory(src, output_dir=tmp_path / "out")

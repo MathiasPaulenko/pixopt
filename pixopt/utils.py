@@ -7,6 +7,15 @@ from pathlib import Path
 
 from pixopt.constants import DEFAULT_EXTENSIONS
 
+__all__ = ["discover_images", "validate_no_parent_references"]
+
+
+def validate_no_parent_references(path: Path, label: str) -> str | None:
+    """Return an error string if the path contains parent-directory references."""
+    if ".." in path.parts:
+        return f"{label} cannot contain parent-directory references: {path}"
+    return None
+
 
 def discover_images(
     source_dir: Path,
