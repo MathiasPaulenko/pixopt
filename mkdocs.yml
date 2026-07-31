@@ -85,6 +85,7 @@ nav:
   - Usage:
     - CLI Reference: cli.md
     - Library Reference: library.md
+    - Advanced Usage: advanced.md
   - API Reference: api.md
   - Development:
     - Contributing: contributing.md

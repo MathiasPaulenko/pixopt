@@ -23,19 +23,34 @@ Whether you are a developer automating image pipelines, a designer preparing ass
 
 ## Highlights
 
-- 🖼️ **Format conversion** — JPEG, PNG, WEBP, AVIF, GIF, HEIC/HEIF, SVG
-- 🎞️ **Animated GIF → WEBP** — convert animated GIFs to much lighter animated WEBP
-- 🧹 **SVG minification** — pure-Python SVG cleanup (no Node.js tools needed)
-- 📱 **HEIC/HEIF import** — open iPhone photos directly via `pillow-heif`
-- 🎯 **Lossless mode** — lossless PNG/WEBP compression for UI assets
-- 🔍 **Adaptive quality** — binary-search quality to hit a target file size
-- 📊 **Visual comparison** — interactive HTML before/after slider
-- 📐 **Responsive srcset** — generate multiple width variants + HTML snippets
-- 🎨 **Lazy-loading placeholders** — dominant color, LQIP data URI, blurhash
-- 🧠 **Smart format detection** — auto-select WEBP/JPEG/PNG based on content
-- 💾 **Backup originals** — copy originals before processing
-- ⚡ **Batch processing** — single files, directories, or multiple files at once
-- 💻 **Beautiful CLI** — built with Typer for an intuitive experience
+- **Format conversion** — JPEG, PNG, WEBP, AVIF, GIF, HEIC/HEIF, SVG
+- **Animated GIF to WEBP** — convert animated GIFs to much lighter animated WEBP
+- **SVG minification** — pure-Python SVG cleanup (no Node.js tools needed)
+- **HEIC/HEIF import** — open iPhone photos directly via `pillow-heif`
+- **Lossless compression** — lossless PNG/WEBP for UI assets
+- **Adaptive quality** — binary-search quality to hit a target file size
+- **Smart format detection** — auto-select WEBP/JPEG/PNG based on content
+- **Responsive srcset** — generate multiple width variants + HTML snippets
+- **Lazy-loading placeholders** — dominant color, LQIP data URI, blurhash
+- **Visual comparison** — interactive HTML before/after slider
+- **Watermarking** — add text or image watermarks with opacity and positioning
+- **Sprite and contact sheets** — combine images into grids or thumbnail indexes
+- **Asset bundles** — hero, thumbnail, `og:image`, favicon, srcset, LQIP, blurhash, and palette in one call
+- **PDF import and export** — convert PDF pages to images and images to PDF
+- **Next-generation formats** — JXL and WebP 2 conversion with graceful fallback
+- **Duplicate detection** — find duplicate or near-duplicate images with perceptual hashing
+- **Directory scanning** — inventory images with aggregate statistics
+- **Format benchmarking** — compare JPEG/WEBP/AVIF/PNG variants and get a recommendation
+- **Color palette extraction** — extract dominant colors for themes and design systems
+- **Bytes and base64 workflows** — optimize in-memory images for web backends and APIs
+- **Async API** — non-blocking optimization, batch, and base64 processing
+- **Quality metrics** — SSIM, PSNR, and MSE comparison
+- **Perceptual hashing** — pHash, dHash, aHash with Hamming distance
+- **Presets** — built-in and custom optimization profiles
+- **Pipeline API** — chain operations with a fluent interface
+- **Batch processing** — single files, directories, or multiple files at once
+- **Backup originals** — copy originals before processing
+- **Beautiful CLI** — built with Typer for an intuitive experience
 
 ---
 
@@ -73,6 +88,7 @@ Whether you are a developer automating image pipelines, a designer preparing ass
 - [:material-rocket-launch: Installation](installation.md) — Install pixopt on your system
 - [:material-console: CLI Usage](cli.md) — Learn every CLI command with examples
 - [:material-code-braces: Library Usage](library.md) — Use pixopt programmatically in Python
+- [:material-book-open: Advanced Usage](advanced.md) — Watermarking, sprites, bundles, PDFs, async, presets, and more
 - [:material-api: API Reference](api.md) — Browse the full auto-generated API docs
 - [:material-source-branch: Contributing](contributing.md) — Set up your dev environment and contribute
 
