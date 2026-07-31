@@ -448,6 +448,7 @@ from pixopt import (
 )
 from pixopt.models import OutputFormat
 
+
 async def main():
     single = await async_optimize_image(
         "photo.jpg",
@@ -472,6 +473,7 @@ async def main():
     b64_result = await async_optimize_base64(b64_input, max_width=800)
     print(b64_result.optimized_size)
 
+
 asyncio.run(main())
 ```
 
@@ -483,8 +485,10 @@ asyncio.run(main())
 from pixopt import async_batch_optimize
 from pixopt.progress import ProgressInfo
 
+
 def on_progress(info: ProgressInfo) -> None:
     print(f"{info.current}/{info.total} {info.current_file.name}")
+
 
 await async_batch_optimize(
     ["a.jpg", "b.jpg"],

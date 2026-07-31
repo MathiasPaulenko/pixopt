@@ -116,8 +116,10 @@ result = optimize_image(
 ```python
 from pixopt import optimize_directory, OutputFormat
 
+
 def progress(info):
     print(f"{info.current}/{info.total}: {info.current_file.name} -> {info.success}")
+
 
 results = optimize_directory(
     "./images",
@@ -300,7 +302,12 @@ blurhash = generate_placeholder("photo.jpg", placeholder_type=PlaceholderType.BL
 `detect_optimal_format()` analyzes image content and recommends the most efficient output format.
 
 ```python
-from pixopt.smart_format import detect_optimal_format, is_photo, has_transparency, count_unique_colors
+from pixopt.smart_format import (
+    detect_optimal_format,
+    is_photo,
+    has_transparency,
+    count_unique_colors,
+)
 from pixopt.models import OutputFormat
 
 fmt = detect_optimal_format("photo.jpg")
@@ -866,6 +873,7 @@ img_from_b64 = base64_to_image(b64)
 import asyncio
 from pixopt import async_optimize_image, OutputFormat
 
+
 async def main():
     result = await async_optimize_image(
         "photo.jpg",
@@ -876,6 +884,7 @@ async def main():
     )
     print(f"Saved: {result.savings_percent:.1f}%")
 
+
 asyncio.run(main())
 ```
 
@@ -884,6 +893,7 @@ asyncio.run(main())
 ```python
 import asyncio
 from pixopt import async_batch_optimize, OutputFormat
+
 
 async def main():
     report = await async_batch_optimize(
@@ -896,6 +906,7 @@ async def main():
     )
     print(f"Processed {report.succeeded}/{report.total_files}")
 
+
 asyncio.run(main())
 ```
 
@@ -905,6 +916,7 @@ asyncio.run(main())
 import asyncio
 import base64
 from pixopt import async_optimize_base64
+
 
 async def main():
     with open("photo.jpg", "rb") as f:
@@ -916,6 +928,7 @@ async def main():
         quality=80,
     )
     print(f"Base64 success: {result.success}")
+
 
 asyncio.run(main())
 ```
