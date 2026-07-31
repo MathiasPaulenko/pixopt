@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Corrected smart-format examples in `README.md` and `docs/cli.md` to use an explicit output file (`output.webp`) rather than a directory.
 - Fixed `docs/library.md` `PipelineResult` example to reference `size_bytes` and guard against a zero success count.
 - Fixed `README.md` `optimize` example to include an explicit output file so `--smart-format` is valid without `--overwrite`.
+- Restored `mkdocs build --strict` in CI/docs workflows.
+- Removed invalid `--smart-format` flag from the `pixopt batch` example in `docs/cli.md`.
 
 ### Added
 

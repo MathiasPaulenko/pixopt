@@ -88,8 +88,8 @@ pixopt batch [FILES...] -o [OUTPUT_DIR] [OPTIONS]
 # Optimize specific files into a directory
 pixopt batch photo1.jpg photo2.png photo3.bmp -o ./optimized --width 800
 
-# Mixed formats with smart detection
-pixopt batch photo.jpg icon.png logo.svg -o ./assets --smart-format --quality 90
+# Mixed formats into a directory
+pixopt batch photo.jpg icon.png logo.svg -o ./assets --quality 90
 ```
 
 **Command-specific options:**
