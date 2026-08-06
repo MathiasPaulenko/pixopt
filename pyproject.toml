@@ -11,7 +11,7 @@ license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 authors = [
-    {name = "Mathias Paulenko Echeverz", email = "mathias.paulenko@outlook.com"}
+    {name = "Mathias Paulenko", email = "mathias.paulenko@outlook.com"}
 ]
 keywords = ["image", "optimization", "compression", "webp", "jpeg", "png", "cli"]
 classifiers = [
