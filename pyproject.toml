@@ -91,6 +91,11 @@ warn_unused_configs = true
 module = ["piexif", "fitz"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["pymupdf"]
+follow_imports = "skip"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
