@@ -217,6 +217,53 @@ PresetFileOption = Annotated[
 ]
 
 
+# Tristate variants for preset-aware commands: ``None`` means the flag was
+# not provided, so a preset value (or the effective default) can be applied.
+PresetQualityOption = Annotated[
+    int | None,
+    typer.Option(
+        "--quality",
+        "-q",
+        min=1,
+        max=100,
+        help="JPEG/WEBP quality (1-100). Higher is better quality.",
+    ),
+]
+
+PresetStripOption = Annotated[
+    bool | None,
+    typer.Option(
+        "--strip/--keep-metadata",
+        "-s/-k",
+        help="Remove EXIF and metadata to save space.",
+    ),
+]
+
+PresetProgressiveOption = Annotated[
+    bool | None,
+    typer.Option(
+        "--progressive/--baseline",
+        help="Use progressive JPEG encoding.",
+    ),
+]
+
+PresetOptimizeOption = Annotated[
+    bool | None,
+    typer.Option(
+        "--optimize/--no-optimize",
+        help="Enable Pillow optimizer.",
+    ),
+]
+
+PresetLosslessOption = Annotated[
+    bool | None,
+    typer.Option(
+        "--lossless",
+        help="Use lossless compression for PNG/WEBP. Ignored for JPEG.",
+    ),
+]
+
+
 def _validate_output_format(value: str) -> str:
     value = value.lower()
     if value not in ("json", "table"):

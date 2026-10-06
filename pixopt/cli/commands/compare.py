@@ -88,7 +88,7 @@ def compare(
 
         generate_comparison_html(
             before_path=source,
-            after_path=optimized,
+            after_path=result.output_path,
             output_html=output_html,
             title=f"Comparison — {source.name}",
         )

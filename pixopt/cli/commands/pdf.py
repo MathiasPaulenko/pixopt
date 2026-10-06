@@ -67,7 +67,7 @@ def pdf(
         list[Path] | None,
         typer.Option(
             "--from-images",
-            help="Image files to combine into a PDF. Repeat or comma-separate for multiple.",
+            help="Image files to combine into a PDF. Repeat the option for multiple images.",
             exists=True,
             resolve_path=True,
         ),

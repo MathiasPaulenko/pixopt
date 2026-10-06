@@ -20,17 +20,17 @@ from pixopt.cli.options import (
     FitOption,
     FormatChoices,
     HeightOption,
-    LosslessOption,
     MinSizeOption,
-    OptimizeOption,
     OutputFormatOption,
     OverwriteOption,
     PresetFileOption,
+    PresetLosslessOption,
+    PresetOptimizeOption,
     PresetOption,
-    ProgressiveOption,
-    QualityOption,
+    PresetProgressiveOption,
+    PresetQualityOption,
+    PresetStripOption,
     RecursiveOption,
-    StripOption,
     TargetSizeOption,
     WidthOption,
 )
@@ -55,6 +55,7 @@ def _parse_exif_groups(groups: list[str]) -> set[EXIFGroup]:
 
 def _resolve_quality(
     source: Path,
+    output: Path | None,
     quality: int,
     target_size: int | None,
     fmt: OutputFormat,
@@ -76,7 +77,7 @@ def _resolve_quality(
             img.load()
             from pixopt.format_resolver import resolve_output_format
 
-            _, pillow_fmt = resolve_output_format(img, source, fmt)
+            _, pillow_fmt = resolve_output_format(img, output or source, fmt)
             if pillow_fmt not in ("JPEG", "WEBP"):
                 return quality
             return find_quality_for_target_size(
@@ -119,14 +120,14 @@ def optimize(
     ] = None,
     width: WidthOption = None,
     height: HeightOption = None,
-    quality: QualityOption = 85,
+    quality: PresetQualityOption = None,
     fmt: FormatChoices = OutputFormat.AUTO,
-    strip: StripOption = True,
-    progressive: ProgressiveOption = True,
-    optimize_flag: OptimizeOption = True,
+    strip: PresetStripOption = None,
+    progressive: PresetProgressiveOption = None,
+    optimize_flag: PresetOptimizeOption = None,
     recursive: RecursiveOption = False,
     overwrite: OverwriteOption = False,
-    lossless: LosslessOption = False,
+    lossless: PresetLosslessOption = None,
     fit: FitOption = None,
     anchor: AnchorOption = Anchor.CENTER,
     aspect_ratio: AspectRatioOption = None,
@@ -178,12 +179,13 @@ def optimize(
         },
     )
 
-    # Extract merged values back into local variables.
-    quality = p.get("quality", quality)
-    strip = p.get("strip", strip)
-    progressive = p.get("progressive", progressive)
-    optimize_flag = p.get("optimize", optimize_flag)
-    lossless = p.get("lossless", lossless)
+    # Extract merged values back into local variables, falling back to
+    # defaults when neither the user nor a preset provided a value.
+    quality = int(p["quality"]) if p.get("quality") is not None else 85
+    strip = bool(p["strip"]) if p.get("strip") is not None else True
+    progressive = bool(p["progressive"]) if p.get("progressive") is not None else True
+    optimize_flag = bool(p["optimize"]) if p.get("optimize") is not None else True
+    lossless = bool(p["lossless"]) if p.get("lossless") is not None else False
     fit = FitMode(p["fit"]) if "fit" in p else fit
     anchor = Anchor(p["anchor"]) if "anchor" in p else anchor
     aspect_ratio = p.get("aspect-ratio", aspect_ratio)
@@ -229,9 +231,6 @@ def optimize(
             backup_dir=backup,
             min_size_bytes=min_bytes,
         )
-        _print_summary(results)
-        if any(not r.success for r in results):
-            raise typer.Exit(1)
         if output_fmt == "json":
             import json as _json
 
@@ -245,9 +244,14 @@ def optimize(
                     default=str,
                 )
             )
+        else:
+            _print_summary(results)
+        if any(not r.success for r in results):
+            raise typer.Exit(1)
     else:
         resolved_quality = _resolve_quality(
             source,
+            output,
             quality,
             target_size,
             resolved_fmt,
@@ -286,9 +290,6 @@ def optimize(
             min_size_bytes=min_bytes,
             keep_exif_groups=_parse_exif_groups(keep_exif) if keep_exif else None,
         )
-        _print_result(result)
-        if not result.success:
-            raise typer.Exit(1)
         if output_fmt == "json":
             import json as _json
 
@@ -302,3 +303,7 @@ def optimize(
                     default=str,
                 )
             )
+        else:
+            _print_result(result)
+        if not result.success:
+            raise typer.Exit(1)

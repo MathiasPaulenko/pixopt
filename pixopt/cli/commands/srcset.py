@@ -16,10 +16,19 @@ from pixopt.cli.options import (
     OptimizeOption,
     ProgressiveOption,
     QualityOption,
-    StripOption,
 )
 from pixopt.srcset_generator import generate_srcset_images
 from pixopt.utils import validate_no_parent_references
+
+# ``--sizes`` owns the ``-s`` short flag in this command, so ``--strip``
+# deliberately has no short alias here.
+_StripOption = Annotated[
+    bool,
+    typer.Option(
+        "--strip/--keep-metadata",
+        help="Remove EXIF and metadata to save space.",
+    ),
+]
 
 
 @app.command()
@@ -57,7 +66,7 @@ def srcset(
         ),
     ] = "webp",
     quality: QualityOption = 85,
-    strip: StripOption = True,
+    strip: _StripOption = True,
     progressive: ProgressiveOption = True,
     optimize_flag: OptimizeOption = True,
     lossless: LosslessOption = False,

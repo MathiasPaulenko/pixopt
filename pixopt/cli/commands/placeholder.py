@@ -59,12 +59,19 @@ def placeholder(
     ] = 20,
 ) -> None:
     """Generate a placeholder (dominant color, LQIP or blurhash) for lazy loading."""
-    result = generate_placeholder(
-        source,
-        placeholder_type=placeholder_type,
-        lqip_size=lqip_size,
-        lqip_quality=lqip_quality,
-    )
+    try:
+        result = generate_placeholder(
+            source,
+            placeholder_type=placeholder_type,
+            lqip_size=lqip_size,
+            lqip_quality=lqip_quality,
+        )
+    except FileNotFoundError as exc:
+        console.print(f"[bold red]File not found:[/bold red] {exc}")
+        raise typer.Exit(1) from exc
+    except (OSError, ValueError) as exc:
+        console.print(f"[bold red]Error:[/bold red] {exc}")
+        raise typer.Exit(1) from exc
 
     console.print(f"[bold green]{placeholder_type.value.upper()}:[/bold green] {result}")
 

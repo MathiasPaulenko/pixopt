@@ -17,17 +17,17 @@ from pixopt.cli.options import (
     FitOption,
     FormatChoices,
     HeightOption,
-    LosslessOption,
     MinSizeOption,
-    OptimizeOption,
     OutputFormatOption,
     OverwriteOption,
     PresetFileOption,
+    PresetLosslessOption,
+    PresetOptimizeOption,
     PresetOption,
-    ProgressiveOption,
-    QualityOption,
+    PresetProgressiveOption,
+    PresetQualityOption,
+    PresetStripOption,
     RecursiveOption,
-    StripOption,
     WidthOption,
 )
 from pixopt.cli.output import _print_result, _print_summary
@@ -57,14 +57,14 @@ def convert(
     ] = None,
     width: WidthOption = None,
     height: HeightOption = None,
-    quality: QualityOption = 85,
+    quality: PresetQualityOption = None,
     fmt: FormatChoices = OutputFormat.AUTO,
-    strip: StripOption = True,
-    progressive: ProgressiveOption = True,
-    optimize_flag: OptimizeOption = True,
+    strip: PresetStripOption = None,
+    progressive: PresetProgressiveOption = None,
+    optimize_flag: PresetOptimizeOption = None,
     recursive: RecursiveOption = False,
     overwrite: OverwriteOption = False,
-    lossless: LosslessOption = False,
+    lossless: PresetLosslessOption = None,
     fit: FitOption = None,
     anchor: AnchorOption = Anchor.CENTER,
     aspect_ratio: AspectRatioOption = None,
@@ -104,11 +104,11 @@ def convert(
         },
     )
 
-    quality = p.get("quality", quality)
-    strip = p.get("strip", strip)
-    progressive = p.get("progressive", progressive)
-    optimize_flag = p.get("optimize", optimize_flag)
-    lossless = p.get("lossless", lossless)
+    quality = int(p["quality"]) if p.get("quality") is not None else 85
+    strip = bool(p["strip"]) if p.get("strip") is not None else True
+    progressive = bool(p["progressive"]) if p.get("progressive") is not None else True
+    optimize_flag = bool(p["optimize"]) if p.get("optimize") is not None else True
+    lossless = bool(p["lossless"]) if p.get("lossless") is not None else False
     fit = FitMode(p["fit"]) if "fit" in p else fit
     anchor = Anchor(p["anchor"]) if "anchor" in p else anchor
     aspect_ratio = p.get("aspect-ratio", aspect_ratio)
@@ -151,9 +151,6 @@ def convert(
             backup_dir=backup,
             min_size_bytes=min_bytes,
         )
-        _print_summary(results)
-        if any(not r.success for r in results):
-            raise typer.Exit(1)
         if output_fmt == "json":
             import json as _json
 
@@ -167,6 +164,10 @@ def convert(
                     default=str,
                 )
             )
+        else:
+            _print_summary(results)
+        if any(not r.success for r in results):
+            raise typer.Exit(1)
     else:
         if output is not None and (error := validate_no_parent_references(output, "output")):
             console.print(f"[bold red]{error}[/bold red]")
@@ -191,9 +192,6 @@ def convert(
             backup_dir=backup,
             min_size_bytes=min_bytes,
         )
-        _print_result(result)
-        if not result.success:
-            raise typer.Exit(1)
         if output_fmt == "json":
             import json as _json
 
@@ -207,3 +205,7 @@ def convert(
                     default=str,
                 )
             )
+        else:
+            _print_result(result)
+        if not result.success:
+            raise typer.Exit(1)

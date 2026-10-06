@@ -58,7 +58,7 @@ def nextgen_cmd(
     ] = "jxl",
     quality: Annotated[
         int,
-        typer.Option("--quality", "-q", help="Quality (1-100)."),
+        typer.Option("--quality", "-q", min=1, max=100, help="Quality (1-100)."),
     ] = 85,
     no_fallback: Annotated[
         bool,
@@ -106,6 +106,9 @@ def nextgen_cmd(
                 console.print(
                     "[bold red]Error:[/bold red] Source image path required for 'convert' action."
                 )
+                raise typer.Exit(1)
+            if fmt.lower() not in ("jxl", "webp2"):
+                console.print("[bold red]Error:[/bold red] Invalid format. Use 'jxl' or 'webp2'.")
                 raise typer.Exit(1)
 
             out_path = output or source.with_suffix(f".{fmt}")
