@@ -72,15 +72,10 @@ async def async_optimize_image(
 ) -> OptimizationResult:
     """Async variant of :func:`pixopt.optimize_image`.
 
-    Runs the synchronous optimization in a background thread.
+    Runs the synchronous optimization in a background thread. Like its
+    synchronous counterpart, invalid parameters produce an
+    :class:`OptimizationResult` with ``success=False`` rather than raising.
     """
-    if error := validate_optimize_params(
-        quality=quality,
-        max_width=max_width,
-        max_height=max_height,
-        min_size_bytes=min_size_bytes,
-    ):
-        raise ValueError(error)
     return await asyncio.to_thread(
         optimize_image,
         source,
@@ -167,14 +162,21 @@ async def async_batch_optimize(
     source_list = list(sources)
     total = len(source_list)
 
+    from pixopt.optimizer import _unique_output_path
+
+    used_names: set[str] = set()
+    out_paths = [_unique_output_path(out_dir, Path(src).name, used_names) for src in source_list]
+
     start = time.perf_counter()
     results: list[OptimizationResult | None] = [None] * total
 
     semaphore = asyncio.Semaphore(max_concurrency)
+    completed = 0
 
     async def _process_one(idx: int, src: Path | str) -> None:
+        nonlocal completed
         src_path = Path(src)
-        out_path = out_dir / src_path.name
+        out_path = out_paths[idx]
         try:
             async with semaphore:
                 result = await async_optimize_image(
@@ -216,12 +218,13 @@ async def async_batch_optimize(
                 error=f"{exc}",
             )
             results[idx] = result
+        completed += 1
         if on_progress is not None:
             await asyncio.get_running_loop().run_in_executor(
                 None,
                 on_progress,
                 ProgressInfo(
-                    current=idx + 1,
+                    current=completed,
                     total=total,
                     current_file=src_path,
                     success=result.success,

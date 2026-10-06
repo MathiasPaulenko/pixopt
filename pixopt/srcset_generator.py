@@ -29,7 +29,8 @@ def _resolve_output_format(fmt_str: str) -> OutputFormat:
     for member in OutputFormat:
         if member.name == fmt_upper and member in FORMAT_MAP:
             return member
-    return OutputFormat.WEBP
+    valid = ", ".join(m.name for m in OutputFormat if m in FORMAT_MAP)
+    raise ValueError(f"Unknown output format {fmt_str!r}. Valid formats: {valid}")
 
 
 def generate_srcset_images(

@@ -53,7 +53,7 @@ _logger = get_logger("optimizer")
 
 # Register HEIC/HEIF support if pillow-heif is available
 try:
-    from pillow_heif import register_heif_opener  # type: ignore[import-untyped]
+    from pillow_heif import register_heif_opener
 
     register_heif_opener()
 except ImportError:
@@ -245,7 +245,7 @@ def optimize_image(
                 > 1
             )
 
-            if is_animated and pillow_fmt == "WEBP":
+            if is_animated and pillow_fmt in ("WEBP", "GIF"):
                 return _optimize_animated_gif(
                     image,
                     source_path,
@@ -312,9 +312,11 @@ def optimize_image(
                 ) or filtered.get("thumbnail")
                 if has_data:
                     exif_bytes = piexif.dump(filtered)
-                    # Re-save with filtered EXIF.
+                    # Re-save with filtered EXIF, keeping the same encoder
+                    # settings so quality/optimize options are not lost.
+                    resave_kwargs = {k: v for k, v in save_kwargs.items() if k != "exif"}
                     with Image.open(output_path) as _re:
-                        _re.save(output_path, format=pillow_fmt, exif=exif_bytes)
+                        _re.save(output_path, format=pillow_fmt, exif=exif_bytes, **resave_kwargs)
             except (OSError, ValueError, KeyError) as exc:
                 _logger.warning("Failed to apply filtered EXIF", exc_info=exc)
         elif strip_metadata:
@@ -401,7 +403,7 @@ def _optimize_animated_gif(
     optimize: bool = True,
     lossless: bool = False,
 ) -> OptimizationResult:
-    """Convert an animated GIF to animated WEBP frame-by-frame."""
+    """Convert an animated image to animated WEBP/GIF frame-by-frame."""
     try:
         n_frames: int = getattr(img, "n_frames", 1)
         if n_frames > MAX_GIF_FRAMES:
@@ -413,9 +415,11 @@ def _optimize_animated_gif(
             )
 
         frames: list[Image.Image] = []
+        durations: list[int] = []
         total_pixels = 0
         for frame_idx in range(n_frames):
             img.seek(frame_idx)
+            durations.append(int(img.info.get("duration", 100)))
             frame = img.copy()
             try:
                 frame = convert_mode(frame, pillow_fmt)
@@ -465,6 +469,9 @@ def _optimize_animated_gif(
             animated=True,
             lossless=lossless,
         )
+        if pillow_fmt in ("WEBP", "GIF"):
+            save_kwargs["duration"] = durations
+            save_kwargs["loop"] = int(img.info.get("loop", 0))
         output_path.parent.mkdir(parents=True, exist_ok=True)
         try:
             frames[0].save(
@@ -758,6 +765,24 @@ def convert_to_favicon(
     )
 
 
+def _unique_output_path(out_dir: Path, name: str, used: set[str]) -> Path:
+    """Return a collision-free output path inside *out_dir*.
+
+    Two source files from different directories may share the same basename;
+    later duplicates get a ``_1``, ``_2``, ... suffix so they do not overwrite
+    each other's outputs.
+    """
+    candidate = name
+    stem = Path(name).stem
+    suffix = Path(name).suffix
+    counter = 1
+    while candidate in used:
+        candidate = f"{stem}_{counter}{suffix}"
+        counter += 1
+    used.add(candidate)
+    return out_dir / candidate
+
+
 def _error_result(
     source_path: Path,
     error: str,
@@ -843,9 +868,10 @@ def batch_optimize(
     start = time.perf_counter()
     results: list[OptimizationResult] = []
 
+    used_names: set[str] = set()
     for idx, src in enumerate(source_list, 1):
         src_path = Path(src)
-        out_path = out_dir / src_path.name
+        out_path = _unique_output_path(out_dir, src_path.name, used_names)
         result = optimize_image(
             src_path,
             out_path,

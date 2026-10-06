@@ -447,6 +447,8 @@ def strip_metadata_pillow(img: Image.Image, pillow_fmt: str) -> Image.Image:
         palette = img.getpalette()
         if palette is not None:
             clean.putpalette(palette)
+        if "transparency" in img.info:
+            clean.info["transparency"] = img.info["transparency"]
     return clean
 
 
