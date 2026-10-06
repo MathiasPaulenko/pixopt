@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-08-06
+
+### Fixed
+
+- Preserved transparency (`info["transparency"]`) when rebuilding indexed PNG (`P` mode) images in `strip_metadata_pillow`.
+- Preserved all animation frames, durations, and loop count when converting animated GIFs to GIF or WEBP.
+- Reapplied save kwargs (quality, optimize, progressive) when resaving images with `keep_exif_groups`.
+- Generated unique output names (`_1`, `_2`, ...) in `batch_optimize` and `async_batch_optimize` when sources share a basename.
+- Fixed `compare -f webp` crashing on a missing temporary file by deriving the suffix from the real output path.
+- Fixed `--preset` being ignored for `quality`, `strip`, `progressive`, `optimize`, and `lossless` in `optimize` and `convert` via tristate option defaults.
+- Resolved output format from the output path (not the source) in `_resolve_quality`, fixing `--target-size` combined with `-f` or `--smart-format`.
+- Removed the `-s` short-flag collision between `--sizes` and `--strip` in `pixopt srcset`; `-s` now means `--sizes`.
+- Kept `--output json` stdout clean by skipping the Rich table in `optimize` and `convert`.
+- Validated unknown formats in `generate_srcset_images` (raises `ValueError` instead of silently falling back to WEBP), `nextgen -f`/`-q`, and `compute_ssim` `win_size`/`data_range`.
+- Enforced `MAX_SCAN_ENTRIES` over all discovered files, not only valid images, and guarded a `stat()` race in `scan_directory`.
+- Matched `async_optimize_image` error behavior to the sync API and fixed `ProgressInfo.current` to report completed files.
+- Hardened `pdf_io` against large PDFs (`MAX_PDF_TOTAL_PIXELS`), `RuntimeError` from PyMuPDF, and deprecated `import fitz` (now `import pymupdf` with fallback).
+- Closed intermediate Pillow images in `palette`, `placeholder`, `benchmark`, `perceptual`, `sprite`, and `quality` helpers.
+- Applied the `background` color when flattening RGBA/palette images in `sprite` cells.
+- Added exception handling to the `placeholder` and `nextgen` CLI commands and path validation to `scan_duplicates`.
+- Removed a stale `type: ignore` in `optimizer.py` that broke `mypy --strict`.
+
+### Changed
+
+- Corrected `README.md` Quick Start and recipes that omitted the required output path.
+- Fixed incorrect examples in `docs/cli.md` (`batch --fit`), `docs/library.md` (`variant.label`, `min_size` check), and `docs/advanced.md` (`apply_preset` override keys, missing import).
+- Expanded `docs/api.md` with previously undocumented public types (presets, EXIF, exceptions, palette, benchmark, progress, result dataclasses).
+- Updated `SECURITY.md` supported versions to include the `1.2.x` line.
+- Corrected the `find_quality_for_target_size` docstring ("closest to the target") and `mypy` configuration for the `pymupdf` module.
+
+## [1.2.1] - 2026-08-01
+
+### Changed
+
+- Expanded MkDocs documentation with comprehensive CLI, library and advanced usage guides.
+- Updated README with missing CLI commands, features and library examples.
+- Formatted Markdown code examples with ruff.
+- Added PyPI trusted-publishing release workflow.
+
 ## [1.2.0] - 2026-07-31
 
 ### Fixed
