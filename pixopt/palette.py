@@ -98,49 +98,54 @@ def extract_palette(
 
         # Convert to RGB for consistent processing.
         rgb_img = img.convert("RGB")
+        quantized: Image.Image | None = None
+        try:
+            # Quantize to n colors using median-cut.
+            quantized = rgb_img.quantize(colors=n, method=Image.Quantize.MEDIANCUT)
 
-        # Quantize to n colors using median-cut.
-        quantized = rgb_img.quantize(colors=n, method=Image.Quantize.MEDIANCUT)
+            # Get the palette and pixel counts.
+            palette = quantized.getpalette()
+            if palette is None:
+                return PaletteResult(
+                    source_path=path,
+                    width=width,
+                    height=height,
+                    colors=[],
+                )
 
-        # Get the palette and pixel counts.
-        palette = quantized.getpalette()
-        if palette is None:
+            # Count how many pixels map to each palette index.
+            histogram = quantized.histogram()
+
+            # Build (index, count) pairs, filter zero-count entries.
+            counts = [(i, histogram[i]) for i in range(min(n, len(histogram))) if histogram[i] > 0]
+
+            # Sort by count descending (most dominant first).
+            counts.sort(key=lambda x: x[1], reverse=True)
+
+            total_pixels = sum(c for _, c in counts) or 1
+
+            swatches: list[ColorSwatch] = []
+            for idx, count in counts:
+                r = palette[idx * 3]
+                g = palette[idx * 3 + 1]
+                b = palette[idx * 3 + 2]
+                rgb = (r, g, b)
+                percent = (count / total_pixels) * 100
+                swatches.append(
+                    ColorSwatch(
+                        hex=_rgb_to_hex(rgb),
+                        rgb=rgb,
+                        percent=round(percent, 2),
+                    ),
+                )
+
             return PaletteResult(
                 source_path=path,
                 width=width,
                 height=height,
-                colors=[],
+                colors=swatches,
             )
-
-        # Count how many pixels map to each palette index.
-        histogram = quantized.histogram()
-
-        # Build (index, count) pairs, filter zero-count entries.
-        counts = [(i, histogram[i]) for i in range(min(n, len(histogram))) if histogram[i] > 0]
-
-        # Sort by count descending (most dominant first).
-        counts.sort(key=lambda x: x[1], reverse=True)
-
-        total_pixels = sum(c for _, c in counts) or 1
-
-        swatches: list[ColorSwatch] = []
-        for idx, count in counts:
-            r = palette[idx * 3]
-            g = palette[idx * 3 + 1]
-            b = palette[idx * 3 + 2]
-            rgb = (r, g, b)
-            percent = (count / total_pixels) * 100
-            swatches.append(
-                ColorSwatch(
-                    hex=_rgb_to_hex(rgb),
-                    rgb=rgb,
-                    percent=round(percent, 2),
-                ),
-            )
-
-        return PaletteResult(
-            source_path=path,
-            width=width,
-            height=height,
-            colors=swatches,
-        )
+        finally:
+            if quantized is not None:
+                quantized.close()
+            rgb_img.close()

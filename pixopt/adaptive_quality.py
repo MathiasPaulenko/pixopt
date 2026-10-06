@@ -38,7 +38,7 @@ def find_quality_for_target_size(
 
     Uses binary search over quality (1-100) and measures the actual encoded
     file size in memory. Returns the quality value that yields a size
-    closest to but not exceeding the target.
+    closest to the target within the tolerance.
 
     Args:
         img: Open PIL Image.

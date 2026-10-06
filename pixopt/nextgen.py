@@ -252,6 +252,10 @@ def convert_to_nextgen(
     """
     if isinstance(fmt, NextGenFormat):
         fmt = fmt.value
+    fmt = fmt.lower()
+    if fmt not in {f.value for f in NextGenFormat}:
+        valid = ", ".join(f.value for f in NextGenFormat)
+        raise ValueError(f"Unknown next-gen format {fmt!r}. Valid formats: {valid}")
 
     source_path = Path(source)
     if error := validate_no_parent_references(source_path, "source"):
@@ -288,6 +292,16 @@ def convert_to_nextgen(
         )
 
         pillow_fmt = fallback_format.upper()
+        if pillow_fmt not in Image.SAVE:
+            return ConversionResult(
+                source=source_path,
+                output=output_path,
+                format=fmt,
+                supported=False,
+                success=False,
+                original_size=original_size,
+                error=f"Fallback format {fallback_format!r} is not supported by Pillow",
+            )
         output_path = output_path.with_suffix(f".{fallback_format.lower()}")
     else:
         pillow_fmt = fmt.upper()

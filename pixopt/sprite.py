@@ -238,7 +238,7 @@ def create_sprite(
             y = row * (cell_height + padding)
 
             # Resize image to fit within cell, preserving aspect ratio
-            resized = _fit_image(img, cell_width, cell_height)
+            resized = _fit_image(img, cell_width, cell_height, background)
 
             # Center within cell
             offset_x = x + (cell_width - resized.width) // 2
@@ -404,7 +404,7 @@ def create_contact_sheet(
             x = padding + col * (cell_width + padding)
             y = padding + row * (full_cell_height + padding)
 
-            resized = _fit_image(img, cell_width, cell_height)
+            resized = _fit_image(img, cell_width, cell_height, background)
             offset_x = x + (cell_width - resized.width) // 2
             offset_y = y + (cell_height - resized.height) // 2
 
@@ -479,14 +479,20 @@ def create_contact_sheet(
             img.close()
 
 
-def _fit_image(img: Image.Image, target_w: int, target_h: int) -> Image.Image:
+def _fit_image(
+    img: Image.Image,
+    target_w: int,
+    target_h: int,
+    background: tuple[int, int, int] = WHITE,
+) -> Image.Image:
     """Resize image to fit within target dimensions, preserving aspect ratio."""
-    if img.mode == "RGBA":
-        bg = Image.new("RGB", img.size, WHITE)
-        bg.paste(img, mask=img.split()[3])
+    if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
+        rgba = img.convert("RGBA")
+        bg = Image.new("RGB", img.size, background)
+        bg.paste(rgba, mask=rgba.split()[3])
+        rgba.close()
         img = bg
-
-    if img.mode != "RGB":
+    elif img.mode != "RGB":
         img = img.convert("RGB")
 
     if img.width <= 0 or img.height <= 0:

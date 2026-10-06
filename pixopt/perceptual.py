@@ -15,7 +15,7 @@ from PIL import Image, ImageFilter
 from pixopt._units import MAX_DUPLICATE_SCAN, MAX_HASH_SIZE, MAX_NEAR_DUPLICATE_SCAN
 from pixopt.image_ops import _open_image, _pixel_data
 from pixopt.logging import get_logger
-from pixopt.utils import discover_images
+from pixopt.utils import discover_images, validate_no_parent_references
 
 __all__ = [
     "HashResult",
@@ -178,7 +178,9 @@ def phash(
     img_size = hash_size * highfreq_factor
     img = _img_to_grayscale(source, img_size)
     try:
-        img = img.filter(ImageFilter.MedianFilter(size=3))
+        filtered = img.filter(ImageFilter.MedianFilter(size=3))
+        img.close()
+        img = filtered
         pixels = _pixel_data(img)
 
         # Compute 1D DCT for each row, then for each column.
@@ -406,6 +408,8 @@ def scan_duplicates(
 
     """
     dir_path = Path(directory)
+    if error := validate_no_parent_references(dir_path, "directory"):
+        raise ValueError(error)
     if not dir_path.exists():
         raise FileNotFoundError(f"Directory not found: {dir_path}")
 

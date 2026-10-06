@@ -112,6 +112,7 @@ def _encode_variant(
 
     Returns 0 if encoding fails.
     """
+    converted: Image.Image | None = None
     try:
         converted = convert_mode(img, fmt)
         with io.BytesIO() as buf:
@@ -126,6 +127,9 @@ def _encode_variant(
             return buf.tell()
     except (OSError, ValueError, Image.DecompressionBombError, KeyError):
         return 0
+    finally:
+        if converted is not None and converted is not img:
+            converted.close()
 
 
 def benchmark_formats(
@@ -164,7 +168,16 @@ def benchmark_formats(
 
         # Build the format/quality matrix.
         q_levels = qualities if qualities is not None else [50, 60, 70, 80, 90]
-        fmt_list = formats if formats is not None else ["JPEG", "WEBP", "AVIF", "PNG"]
+        fmt_list = (
+            [f.upper() for f in formats]
+            if formats is not None
+            else [
+                "JPEG",
+                "WEBP",
+                "AVIF",
+                "PNG",
+            ]
+        )
 
         # Filter out AVIF if not available.
         if "AVIF" in fmt_list and not _check_avif():

@@ -58,7 +58,10 @@ def _load_as_array(path: Path | str) -> npt.NDArray[np.float32]:
     """Load an image as a float32 numpy array in RGB mode."""
     with _open_image(path, label="source") as img:
         rgb = img.convert("RGB")
-        return np.asarray(rgb, dtype=np.float32)
+        try:
+            return np.asarray(rgb, dtype=np.float32)
+        finally:
+            rgb.close()
 
 
 def compute_mse(img1: npt.NDArray[Any], img2: npt.NDArray[Any]) -> float:
@@ -100,6 +103,11 @@ def compute_ssim(
     if img1.shape != img2.shape:
         msg = f"Image shapes don't match: {img1.shape} vs {img2.shape}"
         raise ValueError(msg)
+
+    if win_size < 3 or win_size % 2 == 0:
+        raise ValueError(f"win_size must be an odd integer >= 3, got {win_size}")
+    if data_range <= 0:
+        raise ValueError(f"data_range must be positive, got {data_range}")
 
     if img1.shape[0] * img1.shape[1] > MAX_SSIM_PIXELS:
         raise ValueError(

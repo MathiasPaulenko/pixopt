@@ -40,8 +40,11 @@ def extract_dominant_color(img: Image.Image) -> str:
     Uses a downsample + average approach for accuracy.
     """
     rgb = img.convert("RGB")
-    # Average all pixels by resizing to 1x1 with high-quality filter
-    pixel = rgb.resize((1, 1), Image.Resampling.LANCZOS).getpixel((0, 0))
+    try:
+        # Average all pixels by resizing to 1x1 with high-quality filter
+        pixel = rgb.resize((1, 1), Image.Resampling.LANCZOS).getpixel((0, 0))
+    finally:
+        rgb.close()
     if not isinstance(pixel, tuple):
         return "#000000"
     return f"#{pixel[0]:02x}{pixel[1]:02x}{pixel[2]:02x}"
@@ -66,10 +69,11 @@ def generate_lqip_datauri(img: Image.Image, *, size: int = 32, quality: int = 20
             f"quality must be between {MIN_QUALITY} and {MAX_QUALITY}, got {quality}",
         )
 
-    thumb = img.copy()
-    thumb = thumb.convert("RGB")
+    thumb = img.convert("RGB")
     thumb.thumbnail((size, size), Image.Resampling.LANCZOS)
-    thumb = thumb.filter(ImageFilter.GaussianBlur(radius=2))
+    blurred = thumb.filter(ImageFilter.GaussianBlur(radius=2))
+    thumb.close()
+    thumb = blurred
 
     with io.BytesIO() as buf:
         thumb.save(buf, format="JPEG", quality=quality, optimize=True)

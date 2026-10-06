@@ -145,14 +145,18 @@ def scan_directory(
     valid_count = 0
 
     for file_path in discover_images(dir_path, recursive=recursive, extensions=exts):
-        if valid_count >= MAX_SCAN_ENTRIES:
+        if len(entries) >= MAX_SCAN_ENTRIES:
             _logger.warning(
                 "Scan stopped after reaching the entry limit",
                 extra={"operation": "scan", "limit": MAX_SCAN_ENTRIES},
             )
             break
 
-        file_size = file_path.stat().st_size
+        try:
+            file_size = file_path.stat().st_size
+        except OSError:
+            # File vanished between discovery and stat.
+            continue
 
         try:
             with _open_image(file_path, label="source") as img:

@@ -26,9 +26,12 @@ from pixopt.logging import get_logger
 from pixopt.utils import validate_no_parent_references
 
 try:
-    import fitz
+    import pymupdf as fitz
 except ImportError:  # pragma: no cover - optional dependency
-    fitz = None
+    try:
+        import fitz
+    except ImportError:
+        fitz = None
 
 __all__ = [
     "PdfPageInfo",
@@ -173,6 +176,7 @@ def pdf_to_images(
         zoom = dpi / 72.0
         matrix = fitz.Matrix(zoom, zoom)
 
+        total_pixels = 0
         for page_num in range(len(doc)):
             page = doc.load_page(page_num)
             pix = page.get_pixmap(matrix=matrix)
@@ -182,6 +186,14 @@ def pdf_to_images(
                     success=False,
                     error=f"PDF page dimensions too large: {pix.width}x{pix.height} "
                     f"(max {MAX_IMAGE_DIMENSION})",
+                )
+            total_pixels += pix.width * pix.height
+            if total_pixels > MAX_PDF_TOTAL_PIXELS:
+                return PdfImportResult(
+                    source=source_path,
+                    success=False,
+                    error="PDF total pixel budget exceeded: "
+                    f"{total_pixels} (max {MAX_PDF_TOTAL_PIXELS})",
                 )
             img = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
 
@@ -212,7 +224,7 @@ def pdf_to_images(
 
         return result
 
-    except (OSError, ValueError) as exc:
+    except (OSError, ValueError, RuntimeError) as exc:
         _logger.error(
             "PDF import failed", extra={"operation": "pdf_import", "path": str(source_path)}
         )
@@ -307,7 +319,7 @@ def images_to_pdf(
 
         return result
 
-    except (OSError, ValueError) as exc:
+    except (OSError, ValueError, RuntimeError) as exc:
         _logger.error(
             "PDF export failed", extra={"operation": "pdf_export", "path": str(output_path)}
         )
