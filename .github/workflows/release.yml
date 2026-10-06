@@ -173,7 +173,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PAT }}
         run: |
+          # semantic-release already creates the release when GH_TOKEN is set;
+          # in that case, attach the artifacts to the existing release instead.
           gh release create "${{ needs.bump.outputs.tag }}" \
             --title "${{ needs.bump.outputs.tag }}" \
             --generate-notes \
-            dist/*
+            dist/* || \
+          gh release upload "${{ needs.bump.outputs.tag }}" dist/*
