@@ -16,11 +16,11 @@ Thank you for your interest in contributing to **pixopt**! We welcome bug report
 
 1. Create a virtual environment and install in development mode:
 
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -e ".[dev,docs]"
-```
+    ```bash
+    python -m venv .venv
+    source .venv/bin/activate  # Windows: .venv\Scripts\activate
+    pip install -e ".[dev,docs]"
+    ```
 
 !!! tip
     The `[dev]` extra installs all development dependencies: pytest, ruff, mypy, pyright, bandit, pip-audit, python-semantic-release, pytest-cov.

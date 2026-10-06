@@ -263,7 +263,7 @@ print(f"Final size: {result.human_optimized_size}")
 ```
 
 !!! warning
-    `target_size` is in **bytes**. The algorithm returns the highest quality that keeps the encoded file at or below the target size within the tolerance.
+    `target_size` is in **bytes**. The algorithm returns the quality whose encoded file size is closest to the target within the tolerance.
 
 ---
 
@@ -293,7 +293,7 @@ blurhash = generate_placeholder("photo.jpg", placeholder_type=PlaceholderType.BL
 ```
 
 !!! tip
-    LQIP is ideal for immediate visual feedback while images load. Blurhash is ideal when your frontend already has a blurhash decoder.
+    LQIP is ideal for immediate visual feedback while images load. The `blurhash` type produces a compact blurhash-*like* string using a custom base-83 encoding — it is **not** the official BlurHash format, so standard blurhash decoders cannot render it.
 
 ---
 
@@ -405,7 +405,7 @@ result = optimize_image(
     min_size_bytes=10240,
 )
 
-if not result.output_path.exists() and result.error:
+if result.error:
     print(f"Skipped: {result.error}")
 ```
 
@@ -767,7 +767,10 @@ result = benchmark_formats(
 )
 
 for variant in result.variants:
-    print(f"{variant.label}: {variant.size_bytes} bytes, saved {variant.savings_percent:.1f}%")
+    print(
+        f"{variant.format} q{variant.quality}: "
+        f"{variant.size_bytes} bytes, saved {variant.savings_percent:.1f}%"
+    )
 
 print(f"Recommended: {result.recommended_format} @ q{result.recommended_quality}")
 print(f"Recommended size: {result.human_recommended_size}")

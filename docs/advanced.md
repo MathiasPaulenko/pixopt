@@ -31,7 +31,7 @@ print(result.output_path, result.width, result.height)
 | --- | --- | --- |
 | `position` | `BOTTOM_RIGHT` | One of `TOP_LEFT`, `TOP_RIGHT`, `BOTTOM_LEFT`, `BOTTOM_RIGHT`, `CENTER` |
 | `opacity` | `0.5` | Opacity from `0.0` (invisible) to `1.0` (opaque) |
-| `padding` | `20` | Pixel distance from the edge or center offset |
+| `padding` | `20` | Pixel distance from the edge |
 | `font_size` | `36` | Text size in pixels |
 | `font_path` | `None` | Path to a `.ttf` or `.otf` font file |
 | `color` | `(255, 255, 255)` | Text color as an `(R, G, B)` tuple |
@@ -332,7 +332,7 @@ result = benchmark_formats(
 )
 
 for variant in result.variants:
-    print(variant.label, variant.size_bytes, f"{variant.savings_percent}%")
+    print(variant.format, variant.quality, variant.size_bytes, f"{variant.savings_percent}%")
 
 print("Recommended:", result.recommended_format, result.recommended_quality)
 print("Savings:", result.recommended_savings)
@@ -398,7 +398,7 @@ with open("photo_optimized.webp", "wb") as f:
 ### Optimize a base64 string
 
 ```python
-from pixopt import optimize_base64
+from pixopt import optimize_base64, OutputFormat
 
 b64 = "..."  # raw base64, without the data URI prefix
 result = optimize_base64(
@@ -594,8 +594,8 @@ print(BUILTIN_PRESETS["web"])
 web = resolve_preset("web")
 print(web)
 
-# Merge with overrides
-merged = apply_preset("web", quality=90, max_width=1200)
+# Merge with overrides (keys use the dashed preset naming)
+merged = apply_preset("web", **{"max-width": 1200, "quality": 90})
 print(merged)
 
 # Load custom presets from JSON

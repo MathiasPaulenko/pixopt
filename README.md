@@ -41,6 +41,12 @@
   - [Responsive srcset](#responsive-srcset)
   - [Backup and min-size filter](#backup-and-min-size-filter)
   - [Favicon generation](#favicon-generation)
+  - [Watermarking](#watermarking)
+  - [Sprite sheets](#sprite-sheets)
+  - [Asset bundles](#asset-bundles)
+  - [PDF export](#pdf-export)
+  - [Next-gen formats](#next-gen-formats)
+  - [Base64 and bytes I/O](#base64-and-bytes-io)
 - [API Reference](#api-reference)
 - [Development](#development)
 - [Contributing](#contributing)
@@ -72,19 +78,19 @@ Whether you are a developer automating image pipelines, a designer preparing ass
 - 🧠 **Smart format detection** — auto-detect the most efficient format (photo → WEBP, graphic → PNG, transparent → WEBP)
 - 💾 **Backup originals** — copy originals to a backup directory before processing
 - ⚡ **Batch processing** — optimize single files, directories, or multiple files at once
-- �️ **Watermarking** — add text or image watermarks with position, opacity and tiling
+- 💧 **Watermarking** — add text or image watermarks with position, opacity and scaling
 - 🧩 **Sprite sheets & contact sheets** — pack images into CSS sprites or visual contact sheets
 - 📦 **Asset bundles** — generate ready-to-deploy asset packages for the web
 - 📄 **PDF import/export** — extract pages as images or bundle images into PDFs
-- 🚀 **Next-gen formats** — produce JXL and AVIF outputs
+- 🚀 **Next-gen formats** — produce JXL and WebP2 outputs
 - 🔎 **Duplicate detection** — find visually or exactly similar images
-- 📁 **Directory scanning** — scan folders and produce reports with size savings
-- 🥊 **Format benchmark** — compare size/quality across JPEG, PNG, WEBP, AVIF, JXL
+- 📁 **Directory scanning** — scan folders and produce inventory reports with aggregate statistics
+- 🥊 **Format benchmark** — compare size/quality across JPEG, PNG, WEBP, AVIF
 - 🎨 **Color palette** — extract dominant color swatches from images
 - 🌊 **Async API** — async versions of all major operations
 - 🔡 **Base64 & bytes I/O** — optimize in-memory images for APIs and web services
 - 🔐 **Safety hardening** — path validation, input limits, and resource leak protection
-- �💻 **Beautiful CLI** — built with Typer for an intuitive command-line experience
+- 💻 **Beautiful CLI** — built with Typer for an intuitive command-line experience
 
 ---
 
@@ -138,7 +144,7 @@ pixopt --help
 
 ```bash
 pip install pixopt
-pixopt optimize photo.jpg --quality 80 --width 1200
+pixopt optimize photo.jpg photo_optimized.jpg --quality 80 --width 1200
 ```
 
 ### Library
@@ -267,7 +273,7 @@ Import PDF pages as images or export images as a PDF.
 
 ```bash
 pixopt pdf document.pdf -o ./pages
-pixopt pdf output.pdf --from-images page1.jpg,page2.jpg
+pixopt pdf output.pdf --from-images page1.jpg --from-images page2.jpg
 ```
 
 #### `nextgen`
@@ -284,7 +290,7 @@ pixopt nextgen convert photo.jpg -o photo.jxl -f jxl
 Find duplicate or visually similar images.
 
 ```bash
-pixopt duplicates ./images --threshold 95
+pixopt duplicates ./images --threshold 10
 ```
 
 #### `scan`
@@ -348,7 +354,7 @@ pixopt convert icon.png icon.webp --lossless -f webp
 #### Target a specific file size
 
 ```bash
-pixopt optimize photo.jpg --target-size 50
+pixopt optimize photo.jpg photo_optimized.jpg --target-size 50
 ```
 
 #### Auto-detect the output format
@@ -361,13 +367,13 @@ pixopt convert graphic.png output.webp --smart-format
 #### Backup originals before processing
 
 ```bash
-pixopt optimize ./images --backup ./originals --recursive
+pixopt optimize ./images ./optimized --backup ./originals --recursive
 ```
 
 #### Skip already-optimized files
 
 ```bash
-pixopt optimize ./images --min-size 10 --recursive
+pixopt optimize ./images ./optimized --min-size 10 --recursive
 ```
 
 #### Animated GIF to animated WEBP
@@ -498,7 +504,7 @@ color = generate_placeholder("photo.jpg", placeholder_type="color")
 lqip = generate_placeholder("photo.jpg", placeholder_type="lqip")
 # → "data:image/jpeg;base64,/9j/4AAQ..."
 
-# Blurhash
+# Blurhash-style string (custom compact encoding, not the official BlurHash format)
 blurhash = generate_placeholder("photo.jpg", placeholder_type="blurhash")
 # → "LEHV6nWB2yk8pyo0adR*.7kCMdnj"
 ```
@@ -650,7 +656,7 @@ Key modules:
 - `pixopt.bundle` — Asset bundles (`generate_asset_bundle`)
 - `pixopt.pdf_io` — PDF import/export (`images_to_pdf`, `pdf_to_images`)
 - `pixopt.nextgen` — Next-gen formats (`convert_to_nextgen`)
-- `pixopt.duplicates` — Duplicate detection (`find_duplicates`, `compute_hash`)
+- `pixopt.perceptual` — Duplicate detection (`find_duplicates`, `compute_hash`, `scan_duplicates`)
 - `pixopt.inventory` — Directory scanning and reporting (`scan_directory`, `ScanReport`)
 - `pixopt.benchmark` — Format benchmarking (`benchmark_formats`)
 - `pixopt.palette` — Color palette extraction (`extract_palette`)

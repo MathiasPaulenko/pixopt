@@ -135,8 +135,8 @@ pixopt batch photo1.jpg photo2.png photo3.bmp -o ./optimized --width 800
 # Mixed formats into a directory
 pixopt batch photo.jpg icon.png logo.svg -o ./assets --quality 90
 
-# Resize a set of images to a fixed thumbnail size
-pixopt batch *.jpg -o ./thumbnails --width 400 --height 400 --fit cover
+# Resize a set of images to fit within a thumbnail bounding box
+pixopt batch *.jpg -o ./thumbnails --width 400 --height 400
 
 # Backup originals and get a JSON report
 pixopt batch photo1.jpg photo2.jpg -o ./optimized --backup ./originals --output json
@@ -382,14 +382,11 @@ pixopt srcset hero.jpg --sizes 480,960,1440,1920 -f avif --lossless --html galle
 | `--output-dir` | `-o` | Directory to write responsive images | `./output/responsive` |
 | `--format` | `-f` | Output format: `webp`, `jpeg`, `png`, `avif` | `webp` |
 | `--quality` | `-q` | JPEG/WEBP quality (1–100) | `85` |
-| `--strip` / `--keep-metadata` | `-s` / `-k` | Remove metadata | `True` |
+| `--strip` / `--keep-metadata` | — | Remove metadata | `True` |
 | `--progressive` / `--baseline` | — | Progressive JPEG encoding | `True` |
 | `--optimize` / `--no-optimize` | — | Enable Pillow optimizer | `True` |
 | `--lossless` | — | Use lossless PNG/WEBP compression | `False` |
 | `--html` | — | Path to write the HTML srcset snippet | — |
-
-!!! warning "Short option collision"
-    `--sizes` uses `-s`. Because `--strip` also declares a `-s` short flag in this command, prefer the full option names (`--sizes`, `--strip`) to avoid ambiguity.
 
 ---
 
@@ -605,10 +602,10 @@ pixopt pdf document.pdf -o ./pages --dpi 200 --format jpeg
 pixopt pdf document.pdf --dpi 150 --format png
 
 # Combine images into a PDF
-pixopt pdf output.pdf --from-images page1.png page2.png page3.png -o output.pdf
+pixopt pdf output.pdf --from-images page1.png page2.png page3.png
 
 # Combine all scans into a single PDF
-pixopt pdf scans.pdf --from-images scan*.png -o scans.pdf
+pixopt pdf scans.pdf --from-images scan*.png
 ```
 
 **Command-specific options:**
@@ -942,7 +939,7 @@ Extract a PDF into PNGs and recombine selected pages:
 
 ```bash
 pixopt pdf document.pdf -o ./pages --format png --dpi 200
-pixopt pdf reduced.pdf --from-images ./pages/page_001.png ./pages/page_002.png -o reduced.pdf
+pixopt pdf reduced.pdf --from-images ./pages/page_001.png ./pages/page_002.png
 ```
 
 ### Find and review duplicates

@@ -62,7 +62,7 @@ Whether you are a developer automating image pipelines, a designer preparing ass
 
     ```bash
     pip install pixopt
-    pixopt optimize photo.jpg --quality 80 --width 1200
+    pixopt optimize photo.jpg photo_optimized.jpg --quality 80 --width 1200
     ```
 
 === "Library"

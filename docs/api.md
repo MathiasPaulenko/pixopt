@@ -18,7 +18,73 @@
 
 ::: pixopt.models.OptimizationResult
 
+::: pixopt.models.BatchReport
+
+::: pixopt.models.ImageInfo
+
 ::: pixopt.models.OutputFormat
+
+::: pixopt.models.Anchor
+
+::: pixopt.models.FitMode
+
+## Progress
+
+::: pixopt.progress.ProgressInfo
+
+::: pixopt.progress.ProgressCallback
+
+## Presets
+
+::: pixopt.presets.BUILTIN_PRESETS
+
+::: pixopt.presets.apply_preset
+
+::: pixopt.presets.resolve_preset
+
+::: pixopt.presets.load_custom_presets
+
+::: pixopt.presets.get_preset_names
+
+## EXIF
+
+::: pixopt.exif.EXIFGroup
+
+::: pixopt.exif.filter_exif
+
+::: pixopt.exif.apply_filtered_exif
+
+::: pixopt.exif.get_exif_groups
+
+## Exceptions
+
+::: pixopt.exceptions.PixoptError
+
+::: pixopt.exceptions.ImageNotFoundError
+
+::: pixopt.exceptions.OptimizationError
+
+::: pixopt.exceptions.ConversionError
+
+::: pixopt.exceptions.InvalidParameterError
+
+::: pixopt.exceptions.UnsupportedFormatError
+
+## Palette
+
+::: pixopt.palette.extract_palette
+
+::: pixopt.palette.PaletteResult
+
+::: pixopt.palette.ColorSwatch
+
+## Benchmark
+
+::: pixopt.benchmark.benchmark_formats
+
+::: pixopt.benchmark.BenchmarkResult
+
+::: pixopt.benchmark.BenchmarkVariant
 
 ## Placeholders
 
@@ -60,21 +126,43 @@
 
 ::: pixopt.watermark.add_image_watermark
 
+::: pixopt.watermark.WatermarkPosition
+
+::: pixopt.watermark.WatermarkResult
+
 ## Sprite
 
 ::: pixopt.sprite.create_sprite
 
 ::: pixopt.sprite.create_contact_sheet
 
+::: pixopt.sprite.SpriteLayout
+
+::: pixopt.sprite.SpriteResult
+
+::: pixopt.sprite.SpriteSlot
+
 ## Bundle
 
 ::: pixopt.bundle.generate_asset_bundle
+
+::: pixopt.bundle.BundleOptions
+
+::: pixopt.bundle.AssetBundle
 
 ## In-memory I/O
 
 ::: pixopt.io_bytes.optimize_bytes
 
 ::: pixopt.io_bytes.optimize_base64
+
+::: pixopt.io_bytes.bytes_to_image
+
+::: pixopt.io_bytes.image_to_bytes
+
+::: pixopt.io_bytes.base64_to_image
+
+::: pixopt.io_bytes.image_to_base64
 
 ::: pixopt.io_bytes.BytesResult
 
@@ -85,6 +173,12 @@
 ::: pixopt.pdf_io.images_to_pdf
 
 ::: pixopt.pdf_io.pdf_to_images
+
+::: pixopt.pdf_io.PdfExportResult
+
+::: pixopt.pdf_io.PdfImportResult
+
+::: pixopt.pdf_io.PdfPageInfo
 
 ## Perceptual hashing
 
@@ -101,6 +195,12 @@
 ::: pixopt.perceptual.scan_duplicates
 
 ::: pixopt.perceptual.hamming_distance
+
+::: pixopt.perceptual.HashResult
+
+::: pixopt.perceptual.DuplicateGroup
+
+::: pixopt.perceptual.DuplicateReport
 
 ## Async API
 
@@ -130,9 +230,25 @@
 
 ::: pixopt.inventory.scan_directory
 
+::: pixopt.inventory.ScanEntry
+
+::: pixopt.inventory.ScanReport
+
 ## Next-generation formats
 
+::: pixopt.nextgen.NextGenFormat
+
+::: pixopt.nextgen.detect_format_support
+
+::: pixopt.nextgen.is_format_supported
+
 ::: pixopt.nextgen.convert_to_nextgen
+
+::: pixopt.nextgen.ConversionResult
+
+::: pixopt.nextgen.FormatSupport
+
+::: pixopt.nextgen.FormatSupportInfo
 
 ## Quality metrics
 
@@ -141,3 +257,7 @@
 ::: pixopt.quality.compute_ssim
 
 ::: pixopt.quality.compute_psnr
+
+::: pixopt.quality.compute_mse
+
+::: pixopt.quality.QualityMetrics
