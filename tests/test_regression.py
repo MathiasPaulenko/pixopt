@@ -155,19 +155,14 @@ def test_placeholder_invalid_type(tmp_path: Path) -> None:
         generate_placeholder(source, placeholder_type="invalid")  # type: ignore[reportArgumentType]
 
 
-def test_srcset_ignores_invalid_format_strings(tmp_path: Path) -> None:
-    """Invalid format strings should not produce mismatched output paths."""
+def test_srcset_rejects_invalid_format_strings(tmp_path: Path) -> None:
+    """Invalid format strings must raise a clear error instead of a silent fallback."""
     source = tmp_path / "source.jpg"
     out_dir = tmp_path / "responsive"
     Image.new("RGB", (800, 600)).save(source)
 
-    # "JPG" is not a valid OutputFormat name, so it should default to WEBP
-    # with the correct .webp extension.
-    variants = generate_srcset_images(source, out_dir, [200, 400], output_format="JPG")
-    assert len(variants) == 2
-    for v in variants:
-        assert v.output_path.suffix == ".webp"
-        assert v.output_path.exists()
+    with pytest.raises(ValueError, match="Unknown output format"):
+        generate_srcset_images(source, out_dir, [200, 400], output_format="JPG")
 
 
 def test_optimize_image_output_format_not_enum(tmp_path: Path) -> None:
@@ -379,3 +374,205 @@ def test_cli_srcset_escapes_special_filename_chars(tmp_path: Path) -> None:
     content = html_file.read_text(encoding="utf-8")
     assert "img&x" not in content
     assert "img%26x" in content
+
+
+def test_strip_metadata_pillow_preserves_p_transparency(tmp_path: Path) -> None:
+    """strip_metadata_pillow must keep the transparency info of paletted images."""
+    source = tmp_path / "palette_t.png"
+    output = tmp_path / "out.png"
+
+    p = Image.new("P", (20, 20), 0)
+    p.putpixel((5, 5), 1)
+    palette = [0, 0, 0, 255, 0, 0] + [0] * (256 * 3 - 6)
+    p.putpalette(palette)
+    p.info["transparency"] = 0
+    p.save(source)
+
+    result = optimize_image(source, output)
+    assert result.success is True
+
+    with Image.open(output) as out:
+        assert "transparency" in out.info
+        rgba = out.convert("RGBA")
+        pixel = rgba.getpixel((0, 0))
+        assert isinstance(pixel, tuple)
+        assert pixel[3] == 0
+        rgba.close()
+
+
+def test_animated_gif_to_gif_preserves_frames(tmp_path: Path) -> None:
+    """Animated GIF input must keep all frames when the output stays GIF."""
+    source = tmp_path / "anim.gif"
+    output = tmp_path / "anim_out.gif"
+    frames = [Image.new("RGB", (20, 20), (i * 60, 0, 0)) for i in range(4)]
+    frames[0].save(source, save_all=True, append_images=frames[1:], duration=120, loop=0)
+    for f in frames:
+        f.close()
+
+    result = optimize_image(source, output)
+    assert result.success is True
+
+    with Image.open(output) as out:
+        assert getattr(out, "is_animated", False)
+        assert getattr(out, "n_frames", 1) == 4
+
+
+def test_animated_gif_keeps_frame_durations(tmp_path: Path) -> None:
+    """Frame durations must survive animated GIF -> animated GIF optimization."""
+    source = tmp_path / "anim.gif"
+    output = tmp_path / "anim_out.gif"
+    frames = [Image.new("RGB", (20, 20), (0, i * 60, 0)) for i in range(3)]
+    frames[0].save(source, save_all=True, append_images=frames[1:], duration=250, loop=0)
+    for f in frames:
+        f.close()
+
+    result = optimize_image(source, output)
+    assert result.success is True
+
+    with Image.open(output) as out:
+        assert getattr(out, "is_animated", False)
+        out.seek(1)
+        assert out.info.get("duration") == 250
+
+
+def test_batch_optimize_basename_collision(tmp_path: Path) -> None:
+    """Sources sharing a basename in different dirs must not overwrite each other."""
+    from pixopt.optimizer import batch_optimize
+
+    dir_a = tmp_path / "a"
+    dir_b = tmp_path / "b"
+    dir_a.mkdir()
+    dir_b.mkdir()
+    Image.new("RGB", (10, 10), (255, 0, 0)).save(dir_a / "same.jpg")
+    Image.new("RGB", (10, 10), (0, 0, 255)).save(dir_b / "same.jpg")
+    out_dir = tmp_path / "out"
+
+    report = batch_optimize([dir_a / "same.jpg", dir_b / "same.jpg"], out_dir)
+
+    assert report.failed == 0
+    outputs = {r.output_path.name for r in report.results}
+    assert len(outputs) == 2
+
+
+def test_compute_ssim_rejects_even_win_size() -> None:
+    """compute_ssim must validate win_size parity and data_range sign."""
+    import numpy as np
+
+    from pixopt.quality import compute_ssim
+
+    arr = np.zeros((16, 16), dtype=np.float32)
+    with pytest.raises(ValueError):
+        compute_ssim(arr, arr, win_size=8)
+    with pytest.raises(ValueError):
+        compute_ssim(arr, arr, win_size=0)
+    with pytest.raises(ValueError):
+        compute_ssim(arr, arr, data_range=0)
+
+
+def test_generate_srcset_rejects_unknown_format(tmp_path: Path) -> None:
+    """generate_srcset_images must raise ValueError for unknown format strings."""
+    source = tmp_path / "img.jpg"
+    Image.new("RGB", (200, 200)).save(source)
+    with pytest.raises(ValueError):
+        generate_srcset_images(source, tmp_path / "out", [100], output_format="bogus")
+
+
+def test_scan_directory_limits_all_entries(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """MAX_SCAN_ENTRIES must cap total scanned entries, not only valid ones."""
+    import pixopt.inventory as inventory
+
+    for i in range(5):
+        (tmp_path / f"broken_{i}.jpg").write_bytes(b"not an image")
+
+    monkeypatch.setattr(inventory, "MAX_SCAN_ENTRIES", 3)
+    report = inventory.scan_directory(tmp_path)
+
+    # The cap counts every processed entry, including unreadable files.
+    assert len(report.entries) == 3
+    assert report.errors == 3
+
+
+def test_cli_compare_with_format_conversion(tmp_path: Path) -> None:
+    """`pixopt compare -f webp` must not crash on the adjusted output suffix."""
+    runner = CliRunner()
+    source = tmp_path / "photo.png"
+    html = tmp_path / "cmp.html"
+    Image.new("RGB", (40, 40), (200, 0, 0)).save(source)
+
+    result = runner.invoke(app, ["compare", str(source), str(html), "-f", "webp"])
+    assert result.exit_code == 0
+    assert html.exists()
+
+
+def test_cli_srcset_short_flag_means_sizes(tmp_path: Path) -> None:
+    """In `pixopt srcset`, -s must map to --sizes, not --strip."""
+    runner = CliRunner()
+    source = tmp_path / "img.jpg"
+    out_dir = tmp_path / "out"
+    Image.new("RGB", (300, 300)).save(source)
+
+    result = runner.invoke(app, ["srcset", str(source), "-s", "100", "-o", str(out_dir)])
+    assert result.exit_code == 0
+    assert (out_dir / "img-100w.webp").exists()
+
+
+def test_cli_optimize_preset_applies_quality(tmp_path: Path) -> None:
+    """--preset must apply preset values for options the user did not pass."""
+    runner = CliRunner()
+    source = tmp_path / "photo.jpg"
+    output = tmp_path / "out.jpg"
+    Image.new("RGB", (800, 800), (123, 45, 67)).save(source)
+
+    # The "thumbnail" preset caps max-width at 300 and uses fit=cover.
+    result = runner.invoke(app, ["optimize", str(source), str(output), "--preset", "thumbnail"])
+    assert result.exit_code == 0
+    with Image.open(output) as out:
+        assert out.width <= 300
+
+
+def test_cli_optimize_preset_quality_takes_effect(tmp_path: Path) -> None:
+    """A preset's quality must be used when the user does not pass -q."""
+    runner = CliRunner()
+    source = tmp_path / "photo.jpg"
+    Image.new("RGB", (400, 400), (200, 100, 50)).save(source)
+
+    result_default = runner.invoke(app, ["optimize", str(source), str(tmp_path / "def.jpg")])
+    result_print = runner.invoke(
+        app, ["optimize", str(source), str(tmp_path / "print.jpg"), "--preset", "print"]
+    )
+    assert result_default.exit_code == 0
+    assert result_print.exit_code == 0
+
+    # "print" uses quality=100 and baseline encoding; if the preset is
+    # applied the output must differ from the default q85/progressive run.
+    assert (tmp_path / "print.jpg").stat().st_size != (tmp_path / "def.jpg").stat().st_size
+
+
+def test_cli_optimize_explicit_quality_overrides_preset(tmp_path: Path) -> None:
+    """An explicit -q still wins over the preset value."""
+    runner = CliRunner()
+    source = tmp_path / "photo.jpg"
+    Image.new("RGB", (400, 400), (200, 100, 50)).save(source)
+
+    result_low = runner.invoke(
+        app, ["optimize", str(source), str(tmp_path / "low.jpg"), "-q", "10"]
+    )
+    result_preset = runner.invoke(
+        app,
+        [
+            "optimize",
+            str(source),
+            str(tmp_path / "preset.jpg"),
+            "-q",
+            "10",
+            "--preset",
+            "print",
+        ],
+    )
+    assert result_low.exit_code == 0
+    assert result_preset.exit_code == 0
+
+    # Explicit -q 10 must override preset quality=100 → same order of size.
+    low_size = (tmp_path / "low.jpg").stat().st_size
+    preset_size = (tmp_path / "preset.jpg").stat().st_size
+    assert abs(low_size - preset_size) < low_size
