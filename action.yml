@@ -1,0 +1,49 @@
+name: pixopt
+description: Optimize repo images in CI — compress, resize, convert. Optionally commits results back.
+author: MathiasPaulenko
+branding:
+  icon: image
+  color: purple
+
+inputs:
+  path:
+    description: Images directory to optimize
+    required: false
+    default: "."
+  args:
+    description: 'Extra args for pixopt optimize (default: "--recursive --quality 85")'
+    required: false
+    default: "--recursive --quality 85"
+  commit:
+    description: Commit optimized images back to the branch (needs contents: write permission)
+    required: false
+    default: "false"
+  commit-message:
+    description: Commit message for optimized images
+    required: false
+    default: "chore: optimize images [skip ci]"
+
+runs:
+  using: composite
+  steps:
+    - name: Install pixopt
+      shell: bash
+      run: pip install pixopt
+
+    - name: Optimize images
+      shell: bash
+      run: pixopt optimize "${{ inputs.path }}" "${{ inputs.path }}" ${{ inputs.args }}
+
+    - name: Commit results
+      if: inputs.commit == 'true'
+      shell: bash
+      run: |
+        if git diff --quiet && git diff --staged --quiet; then
+          echo "No image changes to commit."
+          exit 0
+        fi
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add -A
+        git commit -m "${{ inputs.commit-message }}"
+        git push
