@@ -11,7 +11,7 @@ inputs:
     required: false
     default: "."
   args:
-    description: 'Extra args for pixopt optimize (default: "--recursive --quality 85")'
+    description: Extra args for pixopt optimize
     required: false
     default: "--recursive --quality 85"
   commit:
