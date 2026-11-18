@@ -95,6 +95,21 @@ def test_comparison_html_does_not_leak_noqa(tmp_path: Path) -> None:
     assert "#" not in content or "noqa" not in content.lower()
 
 
+def test_comparison_html_rejects_parent_reference_paths(tmp_path: Path) -> None:
+    """before/after paths must not escape the sandbox via parent references."""
+    before = tmp_path / "before.jpg"
+    after = tmp_path / "after.jpg"
+    out_html = tmp_path / "compare.html"
+
+    Image.new("RGB", (100, 100), (255, 0, 0)).save(before)
+    Image.new("RGB", (100, 100), (0, 255, 0)).save(after)
+
+    with pytest.raises(ValueError, match="before_path"):
+        generate_comparison_html(tmp_path / ".." / "before.jpg", after, out_html)
+    with pytest.raises(ValueError, match="after_path"):
+        generate_comparison_html(before, tmp_path / ".." / "after.jpg", out_html)
+
+
 def test_optimize_image_invalid_quality(tmp_path: Path) -> None:
     """optimize_image must reject quality outside 1-100."""
     source = tmp_path / "source.jpg"

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import warnings
 from pathlib import Path
 
 import piexif
@@ -70,6 +71,41 @@ def test_inspect_with_exif_orientation(output_dir: Path) -> None:
     info = inspect_image(path)
     assert info.orientation == 6
     assert "Orientation" in info.exif
+
+
+def test_inspect_exif_orientation_non_integer_is_ignored(output_dir: Path) -> None:
+    # A malformed orientation value must not crash inspection; whatever comes
+    # out must be an int or None, never a raw bytes/str object.
+    path = output_dir / "oriented_bad.jpg"
+    img = Image.new("RGB", (100, 100), (10, 10, 10))
+    exif_ifd = {piexif.ImageIFD.Orientation: b"not-a-number"}
+    exif_dict = {"0th": exif_ifd, "Exif": {}, "GPS": {}, "1st": {}}
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        img.save(path, "JPEG", exif=piexif.dump(exif_dict))
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        info = inspect_image(path)
+    assert info.orientation is None or isinstance(info.orientation, int)
+    json.dumps(info.to_dict())  # must not raise
+
+
+def test_inspect_exif_unserializable_values_are_json_safe(output_dir: Path) -> None:
+    # piexif can produce rationals/tuples; every EXIF value must survive
+    # json.dumps after inspection.
+    path = output_dir / "rational.jpg"
+    img = Image.new("RGB", (100, 100), (10, 10, 10))
+    exif_ifd = {
+        piexif.ImageIFD.XResolution: (720000, 10000),
+        piexif.ImageIFD.YResolution: (720000, 10000),
+        piexif.ImageIFD.Software: b"pixopt-test",
+    }
+    exif_dict = {"0th": exif_ifd, "Exif": {}, "GPS": {}, "1st": {}}
+    img.save(path, "JPEG", exif=piexif.dump(exif_dict))
+
+    info = inspect_image(path)
+    json.dumps(info.to_dict())  # must not raise
 
 
 def test_inspect_dpi(output_dir: Path) -> None:

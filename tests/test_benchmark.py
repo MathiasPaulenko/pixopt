@@ -144,6 +144,24 @@ def test_benchmark_variant_label() -> None:
     assert v2.label == "PNG"
 
 
+def test_benchmark_rejects_too_many_variants(output_dir: Path) -> None:
+    source = output_dir / "many.jpg"
+    Image.new("RGB", (20, 20)).save(source)
+    with pytest.raises(ValueError, match="Too many benchmark variants"):
+        benchmark_formats(source, formats=[f"FMT{i}" for i in range(20)], qualities=list(range(15)))
+
+
+def test_benchmark_rejects_invalid_quality(output_dir: Path) -> None:
+    source = output_dir / "badq.jpg"
+    Image.new("RGB", (20, 20)).save(source)
+    with pytest.raises(ValueError, match="qualities"):
+        benchmark_formats(source, qualities=[0, 50])
+    with pytest.raises(ValueError, match="qualities"):
+        benchmark_formats(source, qualities=[50, 101])
+    with pytest.raises(ValueError, match="qualities"):
+        benchmark_formats(source, qualities=["50"])  # type: ignore[list-item]
+
+
 # ---------------------------------------------------------------------------
 # CLI benchmark command tests
 # ---------------------------------------------------------------------------

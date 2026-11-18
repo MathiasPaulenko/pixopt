@@ -400,6 +400,36 @@ def test_optimize_svg_invalid_tag() -> None:
     assert "< not-a-tag />" in optimized
 
 
+def test_optimize_svg_doctype_with_internal_subset() -> None:
+    # The DOCTYPE removal must consume the whole internal subset, not stop at
+    # the first '>' inside it.
+    raw = (
+        '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" [\n'
+        '<!ENTITY % pe "TEXT">\n'
+        "<!ENTITY pe2 '%pe;'>\n"
+        "]>\n"
+        '<svg width="10" height="10"><rect width="10" height="10"/></svg>'
+    )
+    optimized = optimize_svg(raw)
+    assert "<!DOCTYPE" not in optimized
+    assert "<!ENTITY" not in optimized
+    assert "]>" not in optimized
+    assert "<svg" in optimized
+
+
+def test_optimize_svg_preserves_script_and_style_content() -> None:
+    # Markup-like text inside <script>/<style> is raw content, not tags.
+    raw = (
+        '<svg width="10" height="10">'
+        "<style>rect { fill: <red>; }</style>"
+        "<script>if (a < b) { alert('hi'); }</script>"
+        '<rect width="10" height="10"/></svg>'
+    )
+    optimized = optimize_svg(raw)
+    assert "rect { fill: <red>; }" in optimized
+    assert "if (a < b) { alert('hi'); }" in optimized
+
+
 def test_discover_images_recursive(tmp_path: Path) -> None:
     d = tmp_path / "src"
     (d / "sub").mkdir(parents=True)

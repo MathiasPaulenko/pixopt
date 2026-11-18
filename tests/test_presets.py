@@ -74,6 +74,15 @@ def test_load_custom_presets_invalid_json(tmp_path: Path) -> None:
         load_custom_presets(f)
 
 
+def test_load_custom_presets_rejects_bool_for_int_key(tmp_path: Path) -> None:
+    # JSON booleans are ints in Python; a preset with "quality": true must be
+    # rejected instead of silently treated as quality=1.
+    f = tmp_path / "bool_quality.json"
+    f.write_text(json.dumps({"bad": {"quality": True}}))
+    with pytest.raises(ValueError, match="must be an integer"):
+        load_custom_presets(f)
+
+
 def test_load_custom_presets_invalid_keys(tmp_path: Path) -> None:
     f = tmp_path / "bad_keys.json"
     f.write_text(json.dumps({"bad": {"unknown-key": 1}}))
