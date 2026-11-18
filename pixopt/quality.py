@@ -152,7 +152,10 @@ def compute_ssim(
         s = arr.cumsum(axis=0, dtype=np.float64).cumsum(axis=1, dtype=np.float64)
         s = np.pad(s, ((1, 0), (1, 0)), mode="constant")
         k = win_size
-        return s[k:, k:] - s[:-k, k:] - s[k:, :-k] + s[:-k, :-k]
+        # Annotated so the result is not Any when numpy stubs type np.pad as
+        # returning Any (numpy < 2.2, used on Python 3.10/3.11 CI).
+        sums: npt.NDArray[np.float64] = s[k:, k:] - s[:-k, k:] - s[k:, :-k] + s[:-k, :-k]
+        return sums
 
     n = float(win_size * win_size)
     sum1 = _window_sums(img1_p)
