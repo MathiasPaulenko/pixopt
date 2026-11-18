@@ -9,7 +9,7 @@ description = "Fast Python image optimizer. Resize, compress, convert, and gener
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [
     {name = "Mathias Paulenko", email = "mathias.paulenko@outlook.com"}
 ]
@@ -19,7 +19,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -29,7 +28,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "Pillow>=12.3.0",
+    "Pillow>=13.0.0",
     "pillow-heif>=1.0.0",
     "typer>=0.12.0",
     "rich>=13.0.0",

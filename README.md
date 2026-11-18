@@ -98,8 +98,8 @@ Whether you are a developer automating image pipelines, a designer preparing ass
 
 ### Requirements
 
-- **Python**: 3.10, 3.11, 3.12, 3.13, or 3.14
-- **Core dependencies**: Pillow (>=12.3.0), pillow-heif, typer, rich, piexif, numpy
+- **Python**: 3.11, 3.12, 3.13, or 3.14
+- **Core dependencies**: Pillow (>=13.0.0), pillow-heif, typer, rich, piexif, numpy
 - **Optional**: PyMuPDF for PDF import/export (`pip install pixopt[pdf]`)
 
 ### From PyPI

@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-`pixopt` is a Python library and CLI for image optimization. It is built with `hatchling` and supports Python 3.10–3.14. The codebase uses `Pillow>=12.3.0`, `pillow-heif`, `typer`, `rich`, `piexif`, and optionally `PyMuPDF` (fitz) for PDF support.
+`pixopt` is a Python library and CLI for image optimization. It is built with `hatchling` and supports Python 3.11–3.14. The codebase uses `Pillow>=13.0.0`, `pillow-heif`, `typer`, `rich`, `piexif`, and optionally `PyMuPDF` (fitz) for PDF support.
 
 ## Verification Commands
 
@@ -33,7 +33,7 @@ mkdocs build --strict
 ## Environment Notes
 
 - The default interpreter in this environment is Python 3.14.5.
-- The test suite is designed to run on Python 3.10 through 3.14.
+- The test suite is designed to run on Python 3.11 through 3.14.
 - `tests/test_pdf.py` is automatically skipped when `PyMuPDF` (`fitz`) is not installed.
 - To run PDF tests, ensure `PyMuPDF` is installed for the target interpreter.
 

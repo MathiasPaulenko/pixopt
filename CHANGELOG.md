@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.2] - 2026-11-18
+
+### Fixed
+
+- Bumped `Pillow` to `>=13.0.0`: 42 new CVEs were disclosed against Pillow 12.3.0 with fixes in 13.0.0.
+
+### Changed
+
+- Dropped Python 3.10 support: it reached end of life in October 2026 and Pillow 13.0.0 requires Python >= 3.11, so no vulnerability-free Pillow build exists for 3.10. Supported versions are now 3.11–3.14 (CI matrix, classifiers, and docs updated).
+
 ## [1.5.1] - 2026-11-18
 
 ### Fixed

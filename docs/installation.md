@@ -1,6 +1,6 @@
 # Installation
 
-pixopt requires **Python 3.10, 3.11, 3.12, 3.13, or 3.14**.
+pixopt requires **Python 3.11, 3.12, 3.13, or 3.14**.
 
 ## From PyPI (recommended)
 
