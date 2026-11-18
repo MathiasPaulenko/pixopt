@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-11-18
+
+### Fixed
+
+- Normalized user-supplied `extensions` in `discover_images` (case-insensitive, leading dot optional) and expanded the default extension set (`.tif`, `.tiff`, `.jpe`, and other Pillow-supported formats).
+- Kept output extension and Pillow format consistent in `resolve_output_format` for `AUTO`/`ORIGINAL` and uncommon source extensions (e.g. `.bmp` now resolves to `.jpg` when saved as JPEG).
+- `scan_duplicates` now raises `ValueError` for an unknown `algorithm` instead of silently returning an empty report.
+- Vectorized `compute_ssim` with integral images; large comparisons are now practical within the pixel budget instead of looping per window in Python.
+- Bounded watermark scaling against `MAX_IMAGE_DIMENSION` and rejected non-finite opacity values.
+- Hardened the pipeline: consistent output-format resolution, source/output collision guard, `background_color=None` handling, and proper closing of intermediate images.
+- Hardened `pdf_io`: filename-prefix validation, alpha handling for transparent pages, and robust error propagation.
+- Fixed `inventory` directory validation and alpha detection.
+- Fixed `async_batch_optimize`: scan limit enforcement, duplicate output names, savings accounting, and parameter forwarding.
+- Hardened in-memory APIs (`optimize_bytes`/`optimize_base64`): base64 length limits and strict decoding, animated-frame preservation, conditional metadata stripping, `keep_aspect_ratio` forwarding, and an empty-frame guard.
+- Fixed animated GIF optimization: frame seeking outside the try block, `EOFError` handling, and a metadata-strip gate that no longer drops PNG metadata when `strip_metadata=False`.
+- `batch_optimize`/`optimize_directory` now validate directories, deduplicate final output names, preserve subdirectories in unique paths, and compute savings correctly.
+- `convert_to_nextgen` keeps the output extension consistent with the format actually written and converts modes through the shared helper.
+- `benchmark_formats` caps the variant matrix at 256 encodes and validates quality values.
+- `generate_blurhash` averages cells via a box-filter resize instead of a per-pixel Python loop, and avoids deprecated `getdata()`.
+- `inspect_image` produces JSON-safe EXIF values (bytes, rationals, tuples) and coerces malformed orientation tags without crashing.
+- Preset validation rejects JSON booleans where integers are required (e.g. `"quality": true`).
+- SVG minifier removes DOCTYPEs with internal subsets and preserves `<script>`/`<style>` raw content instead of mangling markup-like text.
+- `generate_comparison_html` validates `before_path`/`after_path` against parent references.
+- Restored backup-before-skip ordering in `optimize_image` (`backup_dir` is honored even when `min_size_bytes` skips the file).
+
+### Changed
+
+- Added regression tests for every repair above (8 new tests; suite now 713 tests).
+
 ## [1.3.0] - 2026-08-06
 
 ### Fixed
