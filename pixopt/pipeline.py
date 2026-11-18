@@ -16,7 +16,7 @@ from typing import Any
 from PIL import Image
 
 from pixopt._units import WHITE
-from pixopt.constants import FORMAT_MAP, FORMAT_TO_EXT
+from pixopt.format_resolver import resolve_output_format
 from pixopt.image_ops import (
     _open_image,
     apply_exif_orientation,
@@ -262,6 +262,8 @@ class Pipeline:
         output = Path(getattr(self, "_output", None) or self._source.with_suffix(".webp"))
         if error := validate_no_parent_references(output, "output"):
             raise ValueError(error)
+        if output.resolve() == self._source.resolve():
+            raise ValueError("Output path would overwrite the source image")
 
         steps: list[str] = []
         img: Image.Image | None = None
@@ -308,7 +310,7 @@ class Pipeline:
                     fit=fit_val,
                     anchor=anchor_val,
                     aspect_ratio=op.params.get("aspect_ratio"),
-                    background_color=op.params.get("background_color", WHITE),
+                    background_color=op.params.get("background_color") or WHITE,
                 )
                 steps.append(f"resize({img.width}x{img.height})")
 
@@ -362,6 +364,7 @@ class Pipeline:
                     )
                     with _open_image(wm_result.output_path, label="watermark result") as opened:
                         opened.load()
+                        img.close()
                         img = opened
                 finally:
                     tmp_path.unlink(missing_ok=True)
@@ -377,10 +380,8 @@ class Pipeline:
         output.parent.mkdir(parents=True, exist_ok=True)
 
         out_fmt: OutputFormat = opt_params["output_format"]
-        pillow_fmt = FORMAT_MAP.get(out_fmt, "WEBP")
-        ext = FORMAT_TO_EXT.get(pillow_fmt, ".webp")
-
-        if output.suffix == "":
+        ext, pillow_fmt = resolve_output_format(img, output, out_fmt)
+        if output.suffix.lower() != ext:
             output = output.with_suffix(ext)
 
         try:

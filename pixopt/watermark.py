@@ -6,6 +6,7 @@ configurable position, opacity, padding, and scaling.
 
 from __future__ import annotations
 
+import math
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
@@ -128,6 +129,8 @@ def add_text_watermark(
         raise ValueError(f"text must be a string, got {type(text).__name__}")
     if len(text) > _MAX_TEXT_LENGTH:
         raise ValueError(f"text exceeds maximum length of {_MAX_TEXT_LENGTH} characters")
+    if not isinstance(opacity, int | float) or not math.isfinite(opacity):
+        raise ValueError(f"opacity must be a finite number, got {opacity!r}")
 
     src_path = Path(source)
     out_path = Path(output)
@@ -232,6 +235,8 @@ def add_image_watermark(
         raise ValueError(f"padding must be between 0 and {MAX_IMAGE_DIMENSION}, got {padding}")
     if scale is not None and (scale <= 0 or scale > 10):
         raise ValueError(f"scale must be between 0 and 10, got {scale}")
+    if not isinstance(opacity, int | float) or not math.isfinite(opacity):
+        raise ValueError(f"opacity must be a finite number, got {opacity!r}")
 
     src_path = Path(source)
     wm_path = Path(watermark)
@@ -266,6 +271,16 @@ def add_image_watermark(
                         )
                     new_w = int(bw * scale)
                     new_h = int(wm.height * (new_w / wm.width))
+                    if (
+                        new_w < 1
+                        or new_h < 1
+                        or new_w > MAX_IMAGE_DIMENSION
+                        or new_h > MAX_IMAGE_DIMENSION
+                    ):
+                        raise ValueError(
+                            f"Scaled watermark dimensions out of range: {new_w}x{new_h} "
+                            f"(max {MAX_IMAGE_DIMENSION})"
+                        )
                     resized = wm.resize((new_w, new_h), Image.Resampling.LANCZOS)
                     wm.close()
                     wm = resized

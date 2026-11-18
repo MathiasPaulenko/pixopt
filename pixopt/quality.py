@@ -57,6 +57,11 @@ class QualityMetrics:
 def _load_as_array(path: Path | str) -> npt.NDArray[np.float32]:
     """Load an image as a float32 numpy array in RGB mode."""
     with _open_image(path, label="source") as img:
+        if img.width * img.height > MAX_SSIM_PIXELS:
+            raise ValueError(
+                f"Image too large for quality comparison: {img.width}x{img.height} "
+                f"(max {MAX_SSIM_PIXELS} pixels)"
+            )
         rgb = img.convert("RGB")
         try:
             return np.asarray(rgb, dtype=np.float32)
@@ -104,10 +109,15 @@ def compute_ssim(
         msg = f"Image shapes don't match: {img1.shape} vs {img2.shape}"
         raise ValueError(msg)
 
+    if img1.ndim not in (2, 3):
+        raise ValueError(f"Images must be 2D or 3D arrays, got {img1.ndim}D")
+
+    if not isinstance(win_size, int) or isinstance(win_size, bool):
+        raise ValueError(f"win_size must be an integer, got {win_size!r}")
     if win_size < 3 or win_size % 2 == 0:
         raise ValueError(f"win_size must be an odd integer >= 3, got {win_size}")
-    if data_range <= 0:
-        raise ValueError(f"data_range must be positive, got {data_range}")
+    if not math.isfinite(data_range) or data_range <= 0:
+        raise ValueError(f"data_range must be positive and finite, got {data_range}")
 
     if img1.shape[0] * img1.shape[1] > MAX_SSIM_PIXELS:
         raise ValueError(
@@ -127,31 +137,40 @@ def compute_ssim(
 
     # Pad images to handle borders.
     pad = win_size // 2
+    h, w = img1.shape
+    if pad >= min(h, w):
+        raise ValueError(
+            f"Image too small for win_size={win_size}: {w}x{h} (min dimension must be > {pad})"
+        )
     img1_p = np.pad(img1, pad, mode="reflect")
     img2_p = np.pad(img2, pad, mode="reflect")
 
-    h, w = img1.shape
-    ssim_sum = 0.0
-    count = 0
+    # Vectorized window statistics via integral (summed-area) images: each
+    # window's sum is 4 lookups, so the whole map is O(h*w) instead of the
+    # O(h*w*win_size^2) per-pixel Python loop.
+    def _window_sums(arr: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        s = arr.cumsum(axis=0, dtype=np.float64).cumsum(axis=1, dtype=np.float64)
+        s = np.pad(s, ((1, 0), (1, 0)), mode="constant")
+        k = win_size
+        return s[k:, k:] - s[:-k, k:] - s[k:, :-k] + s[:-k, :-k]
 
-    for i in range(h):
-        for j in range(w):
-            w1 = img1_p[i : i + win_size, j : j + win_size]
-            w2 = img2_p[i : i + win_size, j : j + win_size]
+    n = float(win_size * win_size)
+    sum1 = _window_sums(img1_p)
+    sum2 = _window_sums(img2_p)
+    sq1 = _window_sums(img1_p * img1_p)
+    sq2 = _window_sums(img2_p * img2_p)
+    prod = _window_sums(img1_p * img2_p)
 
-            mu1 = w1.mean()
-            mu2 = w2.mean()
-            sigma1 = w1.var()
-            sigma2 = w2.var()
-            sigma12 = ((w1 - mu1) * (w2 - mu2)).mean()
+    mu1 = sum1 / n
+    mu2 = sum2 / n
+    sigma1 = np.clip(sq1 / n - mu1**2, 0.0, None)
+    sigma2 = np.clip(sq2 / n - mu2**2, 0.0, None)
+    sigma12 = prod / n - mu1 * mu2
 
-            ssim_val = ((2 * mu1 * mu2 + c1) * (2 * sigma12 + c2)) / (
-                (mu1**2 + mu2**2 + c1) * (sigma1 + sigma2 + c2)
-            )
-            ssim_sum += ssim_val
-            count += 1
-
-    return float(ssim_sum / count) if count > 0 else 1.0
+    ssim_map = ((2 * mu1 * mu2 + c1) * (2 * sigma12 + c2)) / (
+        (mu1**2 + mu2**2 + c1) * (sigma1 + sigma2 + c2)
+    )
+    return float(ssim_map.mean())
 
 
 def compare_images(

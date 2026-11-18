@@ -62,13 +62,19 @@ def _open_image(path: Path | str, *, label: str = "source") -> Iterator[Image.Im
 
 def convert_mode(img: Image.Image, pillow_fmt: str) -> Image.Image:
     """Convert image mode so it can be saved in the requested format."""
-    if pillow_fmt == "PNG":
-        return img
-
     if pillow_fmt not in ("JPEG", "WEBP"):
         return img
 
-    # JPEG and WEBP do not support alpha. Flatten any transparent image onto a
+    if pillow_fmt == "WEBP":
+        # WEBP supports alpha: keep transparent images in RGBA instead of
+        # flattening them (JPEG is the only format here that cannot).
+        if img.mode in ("RGB", "RGBA"):
+            return img
+        if img.mode == "LA" or (img.mode == "P" and "transparency" in img.info):
+            return img.convert("RGBA")
+        return img.convert("RGB")
+
+    # JPEG does not support alpha. Flatten any transparent image onto a
     # white background so the transparent areas are not replaced with an
     # unexpected color (Pillow's default is black when dropping alpha).
     if img.mode in ("RGBA", "LA"):
@@ -260,19 +266,27 @@ def _fit_cover(
     if img.width == target_w and img.height == target_h:
         return img
 
+    # Crop to the target aspect ratio first so the intermediate resize never
+    # exceeds the source dimensions (a resize-then-crop approach can request
+    # an astronomical intermediate size for extreme aspect ratios).
     img_aspect = img.width / img.height
     target_aspect = target_w / target_h
 
     if img_aspect > target_aspect:
-        new_height = target_h
-        new_width = max(target_w, int(new_height * img_aspect))
+        crop_h = img.height
+        crop_w = max(1, int(round(crop_h * target_aspect)))
     else:
-        new_width = target_w
-        new_height = max(target_h, int(new_width / img_aspect))
+        crop_w = img.width
+        crop_h = max(1, int(round(crop_w / target_aspect)))
 
-    resized = img.resize((new_width, new_height), Resampling.LANCZOS)
-    x, y = _anchor_offset(new_width, new_height, target_w, target_h, anchor)
-    return resized.crop((x, y, x + target_w, y + target_h))
+    x, y = _anchor_offset(img.width, img.height, crop_w, crop_h, anchor)
+    cropped = img.crop((x, y, x + crop_w, y + crop_h))
+    if cropped.size == (target_w, target_h):
+        return cropped
+    try:
+        return cropped.resize((target_w, target_h), Resampling.LANCZOS)
+    finally:
+        cropped.close()
 
 
 def _fit_contain(
@@ -337,6 +351,10 @@ def resize_image(
     optional aspect_ratio. If a fit mode other than 'down' is used, the image
     may be upscaled to meet the target size.
     """
+    for name, value in (("max_width", max_width), ("max_height", max_height)):
+        if value is not None and not 1 <= value <= MAX_IMAGE_DIMENSION:
+            raise ValueError(f"{name} must be between 1 and {MAX_IMAGE_DIMENSION}, got {value}")
+
     if fit is None:
         if not max_width and not max_height:
             return img
@@ -364,9 +382,14 @@ def resize_image(
         parsed_aspect,
     )
 
-    # Avoid zero-sized targets.
+    # Avoid zero-sized targets and refuse targets beyond the dimension limit
+    # (aspect-ratio math can otherwise request images of ~1e9 pixels).
     target_w = max(1, target_w)
     target_h = max(1, target_h)
+    if target_w > MAX_IMAGE_DIMENSION or target_h > MAX_IMAGE_DIMENSION:
+        raise ValueError(
+            f"Resize target too large: {target_w}x{target_h} (max {MAX_IMAGE_DIMENSION})"
+        )
 
     if fit == FitMode.DOWN:
         img.thumbnail((target_w, target_h), Resampling.LANCZOS)
@@ -418,11 +441,12 @@ def build_save_kwargs(
         if animated:
             kwargs["save_all"] = True
             kwargs["minimize"] = True
+    elif pillow_fmt == "AVIF":
+        kwargs["quality"] = quality
     elif pillow_fmt == "PNG":
         kwargs["compress_level"] = 9
     elif pillow_fmt == "GIF" and animated:
         kwargs["save_all"] = True
-        kwargs["optimize"] = True
 
     return kwargs
 

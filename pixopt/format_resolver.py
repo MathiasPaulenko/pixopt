@@ -29,7 +29,11 @@ def resolve_output_format(
         pillow_fmt = EXT_TO_FORMAT.get(original_ext, img.format or "JPEG")
         if pillow_fmt not in FORMAT_TO_EXT:
             pillow_fmt = "JPEG"
-        return original_ext or ".jpg", pillow_fmt
+        # The returned extension must match the resolved format: an
+        # unrecognized source extension (e.g. .bmp) falls back to the
+        # canonical extension for the output format.
+        ext = original_ext if original_ext in EXT_TO_FORMAT else FORMAT_TO_EXT[pillow_fmt]
+        return ext, pillow_fmt
 
     if fmt == OutputFormat.AUTO:
         ext = output_path.suffix.lower()

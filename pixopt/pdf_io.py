@@ -155,6 +155,14 @@ def pdf_to_images(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     name_prefix = prefix or source_path.stem
+    # The prefix becomes a filename component; reject path separators and
+    # parent references so it cannot escape the output directory.
+    if Path(name_prefix).name != name_prefix or ".." in name_prefix:
+        return PdfImportResult(
+            source=source_path,
+            success=False,
+            error=f"Invalid filename prefix: {name_prefix!r}",
+        )
     pillow_fmt = fmt.upper()
 
     _logger.debug(
@@ -180,6 +188,10 @@ def pdf_to_images(
         for page_num in range(len(doc)):
             page = doc.load_page(page_num)
             pix = page.get_pixmap(matrix=matrix)
+            if pix.alpha:
+                # Pages with transparency produce RGBA samples; drop the alpha
+                # channel so the RGB conversion below has the expected layout.
+                pix = fitz.Pixmap(pix, 0)
             if pix.width > MAX_IMAGE_DIMENSION or pix.height > MAX_IMAGE_DIMENSION:
                 return PdfImportResult(
                     source=source_path,

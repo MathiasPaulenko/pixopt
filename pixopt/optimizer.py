@@ -25,13 +25,14 @@ from pixopt._units import (
     MAX_FAVICON_SIZES,
     MAX_GIF_FRAMES,
     MAX_GIF_TOTAL_PIXELS,
+    MAX_IMAGE_DIMENSION,
     MAX_INPUT_BYTES,
     MAX_QUALITY,
     MIN_QUALITY,
     PERCENT,
     WHITE,
 )
-from pixopt.constants import DEFAULT_FAVICON_SIZES
+from pixopt.constants import DEFAULT_FAVICON_SIZES, EXT_TO_FORMAT, FORMAT_MAP, FORMAT_TO_EXT
 from pixopt.exif import EXIFGroup
 from pixopt.image_ops import (
     _open_image,
@@ -70,10 +71,10 @@ def validate_optimize_params(
     """Return an error message if any parameter is invalid, otherwise None."""
     if not MIN_QUALITY <= quality <= MAX_QUALITY:
         return f"quality must be between {MIN_QUALITY} and {MAX_QUALITY}, got {quality}"
-    if max_width is not None and max_width <= 0:
-        return f"max_width must be a positive integer, got {max_width}"
-    if max_height is not None and max_height <= 0:
-        return f"max_height must be a positive integer, got {max_height}"
+    if max_width is not None and not 1 <= max_width <= MAX_IMAGE_DIMENSION:
+        return f"max_width must be between 1 and {MAX_IMAGE_DIMENSION}, got {max_width}"
+    if max_height is not None and not 1 <= max_height <= MAX_IMAGE_DIMENSION:
+        return f"max_height must be between 1 and {MAX_IMAGE_DIMENSION}, got {max_height}"
     if min_size_bytes is not None and min_size_bytes < 0:
         return f"min_size_bytes must be non-negative, got {min_size_bytes}"
     return None
@@ -289,7 +290,8 @@ def optimize_image(
                 strip_metadata=strip_metadata,
                 lossless=lossless,
             )
-            img = strip_metadata_pillow(img, pillow_fmt)
+            if strip_metadata:
+                img = strip_metadata_pillow(img, pillow_fmt)
 
             output_path.parent.mkdir(parents=True, exist_ok=True)
             try:
@@ -346,7 +348,7 @@ def optimize_image(
             original_size=original_size,
             output=output_path,
         )
-    except (OSError, ValueError) as exc:
+    except (OSError, EOFError, ValueError) as exc:
         return _error_result(source_path, str(exc), original_size=original_size, output=output_path)
 
 
@@ -418,10 +420,11 @@ def _optimize_animated_gif(
         durations: list[int] = []
         total_pixels = 0
         for frame_idx in range(n_frames):
-            img.seek(frame_idx)
-            durations.append(int(img.info.get("duration", 100)))
-            frame = img.copy()
+            frame: Image.Image | None = None
             try:
+                img.seek(frame_idx)
+                durations.append(int(img.info.get("duration", 100)))
+                frame = img.copy()
                 frame = convert_mode(frame, pillow_fmt)
                 frame = resize_image(
                     frame,
@@ -433,7 +436,8 @@ def _optimize_animated_gif(
                     aspect_ratio=aspect_ratio,
                     background_color=background_color,
                 )
-                frame = strip_metadata_pillow(frame, pillow_fmt)
+                if strip_metadata:
+                    frame = strip_metadata_pillow(frame, pillow_fmt)
 
                 frame_pixels = frame.width * frame.height
                 if total_pixels + frame_pixels > MAX_GIF_TOTAL_PIXELS:
@@ -450,10 +454,11 @@ def _optimize_animated_gif(
 
                 total_pixels += frame_pixels
                 frames.append(frame)
-            except (OSError, ValueError) as exc:
+            except (OSError, EOFError, ValueError) as exc:
                 for f in frames:
                     f.close()
-                frame.close()
+                if frame is not None:
+                    frame.close()
                 return _error_result(
                     source_path,
                     str(exc),
@@ -500,7 +505,7 @@ def _optimize_animated_gif(
             metadata_removed=strip_metadata,
             success=True,
         )
-    except (OSError, ValueError) as exc:
+    except (OSError, EOFError, ValueError) as exc:
         _logger.error("Conversion failed", extra={"operation": "convert", "path": str(source_path)})
         return _error_result(source_path, str(exc), original_size=original_size, output=output_path)
 
@@ -533,6 +538,10 @@ def optimize_directory(
 
     """
     src = Path(source_dir)
+    if not src.exists():
+        raise FileNotFoundError(f"Directory not found: {src}")
+    if not src.is_dir():
+        raise NotADirectoryError(f"Not a directory: {src}")
     if output_dir is not None:
         out_dir_raw = Path(output_dir)
         if error := validate_no_parent_references(out_dir_raw, "output_dir"):
@@ -551,13 +560,19 @@ def optimize_directory(
     if total > MAX_DIRECTORY_SCAN:
         raise ValueError(f"Too many files in directory (max {MAX_DIRECTORY_SCAN}), got {total}")
 
+    out_format = kwargs.get("output_format", OutputFormat.AUTO)
+    if not isinstance(out_format, OutputFormat):
+        out_format = OutputFormat.AUTO
+    used_names: set[str] = set()
+
     for idx, file_path in enumerate(files, 1):
         if out_dir is not None:
             try:
                 rel = file_path.relative_to(src)
             except ValueError as exc:
                 raise ValueError(f"File path is not inside source directory: {file_path}") from exc
-            out = out_dir / rel
+            out_rel = rel.parent / _predicted_output_name(file_path, out_format)
+            out = _unique_output_path(out_dir, str(out_rel), used_names)
             if not out.resolve().is_relative_to(out_dir):
                 raise ValueError(f"Output path escapes target directory: {out}")
         else:
@@ -679,10 +694,16 @@ def convert_to_favicon(
         )
 
     for size in chosen_sizes:
-        if size <= 0:
+        if not isinstance(size, int) or isinstance(size, bool):
             return _error_result(
                 source_path,
-                f"favicon sizes must be positive integers, got {size!r}",
+                f"favicon sizes must be integers, got {size!r}",
+                original_size=original_size,
+            )
+        if size <= 0 or size > MAX_IMAGE_DIMENSION:
+            return _error_result(
+                source_path,
+                f"favicon sizes must be positive and <= {MAX_IMAGE_DIMENSION}, got {size!r}",
                 original_size=original_size,
             )
 
@@ -765,6 +786,19 @@ def convert_to_favicon(
     )
 
 
+def _predicted_output_name(src: Path, output_format: OutputFormat) -> str:
+    """Return the final file name ``optimize_image`` will produce for *src*.
+
+    Mirrors the extension adjustment in ``resolve_output_format`` so output
+    names can be deduplicated before files are written.
+    """
+    if output_format in FORMAT_MAP:
+        ext = FORMAT_TO_EXT[FORMAT_MAP[output_format]]
+    else:
+        ext = FORMAT_TO_EXT.get(EXT_TO_FORMAT.get(src.suffix.lower(), "JPEG"), ".jpg")
+    return src.stem + ext
+
+
 def _unique_output_path(out_dir: Path, name: str, used: set[str]) -> Path:
     """Return a collision-free output path inside *out_dir*.
 
@@ -772,14 +806,14 @@ def _unique_output_path(out_dir: Path, name: str, used: set[str]) -> Path:
     later duplicates get a ``_1``, ``_2``, ... suffix so they do not overwrite
     each other's outputs.
     """
-    candidate = name
-    stem = Path(name).stem
-    suffix = Path(name).suffix
+    rel = Path(name)
+    parent, stem, suffix = rel.parent, rel.stem, rel.suffix
+    candidate = rel
     counter = 1
-    while candidate in used:
-        candidate = f"{stem}_{counter}{suffix}"
+    while str(candidate) in used:
+        candidate = parent / f"{stem}_{counter}{suffix}"
         counter += 1
-    used.add(candidate)
+    used.add(str(candidate))
     return out_dir / candidate
 
 
@@ -871,7 +905,11 @@ def batch_optimize(
     used_names: set[str] = set()
     for idx, src in enumerate(source_list, 1):
         src_path = Path(src)
-        out_path = _unique_output_path(out_dir, src_path.name, used_names)
+        out_path = _unique_output_path(
+            out_dir,
+            _predicted_output_name(src_path, output_format),
+            used_names,
+        )
         result = optimize_image(
             src_path,
             out_path,
@@ -910,12 +948,18 @@ def batch_optimize(
     elapsed = time.perf_counter() - start
 
     total_files = len(results)
-    succeeded = sum(1 for r in results if r.success)
+    successful = [r for r in results if r.success]
+    succeeded = len(successful)
     failed = total_files - succeeded
     total_original = sum(r.original_size for r in results)
-    total_optimized = sum(r.optimized_size for r in results if r.success)
-    total_savings = total_original - total_optimized
-    savings_percent = (total_savings / total_original * PERCENT) if total_original > 0 else 0.0
+    total_optimized = sum(r.optimized_size for r in successful)
+    # Savings must only count files that were actually optimized; including
+    # failed sources in the baseline would inflate the reported savings.
+    total_savings = sum(r.savings_bytes for r in successful)
+    original_of_successful = sum(r.original_size for r in successful)
+    savings_percent = (
+        (total_savings / original_of_successful * PERCENT) if original_of_successful > 0 else 0.0
+    )
 
     return BatchReport(
         results=results,

@@ -89,12 +89,19 @@ def inspect_image(source: Path | str) -> ImageInfo:
             if exif:
                 for tag_id, value in exif.items():
                     tag_name = Base(tag_id).name if tag_id in _EXIF_TAG_IDS else f"Tag_{tag_id}"
-                    # Convert bytes to a readable representation.
+                    # Convert values to a JSON-safe representation; raw EXIF
+                    # values can be bytes, rationals or nested tuples that
+                    # are not serializable.
                     if isinstance(value, bytes):
                         value = value.hex()
+                    elif not isinstance(value, (str, int, float, bool, list, type(None))):
+                        value = str(value)
                     exif_dict[tag_name] = value
 
-                orientation = exif.get(_ORIENTATION_TAG)
+                raw_orientation = exif.get(_ORIENTATION_TAG)
+                if raw_orientation is not None:
+                    with contextlib.suppress(TypeError, ValueError):
+                        orientation = int(raw_orientation)
 
             # ICC profile presence.
             icc_profile = "icc_profile" in img.info

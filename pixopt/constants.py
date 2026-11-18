@@ -13,6 +13,7 @@ __all__ = [
 EXT_TO_FORMAT: dict[str, str] = {
     ".jpg": "JPEG",
     ".jpeg": "JPEG",
+    ".jpe": "JPEG",
     ".png": "PNG",
     ".webp": "WEBP",
     ".avif": "AVIF",
@@ -40,10 +41,12 @@ FORMAT_MAP: dict[OutputFormat, str] = {
 DEFAULT_EXTENSIONS: set[str] = {
     ".jpg",
     ".jpeg",
+    ".jpe",
     ".png",
     ".webp",
     ".bmp",
     ".tiff",
+    ".tif",
     ".gif",
     ".svg",
     ".heic",

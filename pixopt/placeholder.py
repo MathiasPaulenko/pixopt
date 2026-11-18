@@ -15,7 +15,7 @@ from pixopt._units import (
     MAX_QUALITY,
     MIN_QUALITY,
 )
-from pixopt.image_ops import _open_image
+from pixopt.image_ops import _open_image, _pixel_data
 
 __all__ = [
     "PlaceholderType",
@@ -121,40 +121,24 @@ def generate_blurhash(img: Image.Image, *, components_x: int = 4, components_y: 
 
     rgb = img.convert("RGB")
     try:
-        w, h = rgb.size
-        cell_w = max(1, w // components_x)
-        cell_h = max(1, h // components_y)
+        # Downsample to one pixel per grid cell: a box-filter average is what
+        # the per-cell pixel loop computed, but without iterating every pixel
+        # in Python.
+        grid = rgb.resize((components_x, components_y), Image.Resampling.BOX)
+        try:
+            cells = _pixel_data(grid)
+        finally:
+            grid.close()
 
         # Size flag (components - 1) each fits in one char
         size_flag = (components_y - 1) * 9 + (components_x - 1)
         parts: list[str] = [_encode_base83(size_flag, 1)]
 
-        for cy in range(components_y):
-            for cx in range(components_x):
-                x1 = cx * cell_w
-                y1 = cy * cell_h
-                x2 = min(w, x1 + cell_w)
-                y2 = min(h, y1 + cell_h)
-                region = rgb.crop((x1, y1, x2, y2))
-                try:
-                    data = region.tobytes()
-                    n = len(data) // 3
-                    if n == 0:
-                        r = g = b = 0
-                    else:
-                        r_total = g_total = b_total = 0
-                        for i in range(0, len(data), 3):
-                            r_total += data[i]
-                            g_total += data[i + 1]
-                            b_total += data[i + 2]
-                        r = r_total // n
-                        g = g_total // n
-                        b = b_total // n
-                    # Pack RGB into a single base83 value
-                    packed = (r << 16) | (g << 8) | b
-                    parts.append(_encode_base83(packed, 4))
-                finally:
-                    region.close()
+        for cell in cells:
+            r, g, b = cell
+            # Pack RGB into a single base83 value
+            packed = (r << 16) | (g << 8) | b
+            parts.append(_encode_base83(packed, 4))
 
         return "".join(parts)
     finally:

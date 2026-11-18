@@ -16,7 +16,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from pixopt._units import WHITE
+from pixopt._units import MAX_DIRECTORY_SCAN, WHITE
 from pixopt.exif import EXIFGroup
 from pixopt.inventory import ScanReport, scan_directory
 from pixopt.io_bytes import Base64Result, BytesResult
@@ -161,11 +161,16 @@ async def async_batch_optimize(
 
     source_list = list(sources)
     total = len(source_list)
+    if total > MAX_DIRECTORY_SCAN:
+        raise ValueError(f"Too many files in batch (max {MAX_DIRECTORY_SCAN}), got {total}")
 
-    from pixopt.optimizer import _unique_output_path
+    from pixopt.optimizer import _predicted_output_name, _unique_output_path
 
     used_names: set[str] = set()
-    out_paths = [_unique_output_path(out_dir, Path(src).name, used_names) for src in source_list]
+    out_paths = [
+        _unique_output_path(out_dir, _predicted_output_name(Path(src), output_format), used_names)
+        for src in source_list
+    ]
 
     start = time.perf_counter()
     results: list[OptimizationResult | None] = [None] * total
@@ -326,6 +331,7 @@ async def async_optimize_bytes(
     strip_metadata: bool = True,
     lossless: bool = False,
     auto_orient: bool = True,
+    keep_aspect_ratio: bool = True,
     fit: FitMode | str | None = None,
     anchor: Anchor | str = Anchor.CENTER,
     aspect_ratio: tuple[int, int] | str | None = None,
@@ -349,6 +355,7 @@ async def async_optimize_bytes(
         strip_metadata=strip_metadata,
         lossless=lossless,
         auto_orient=auto_orient,
+        keep_aspect_ratio=keep_aspect_ratio,
         fit=fit,
         anchor=anchor,
         aspect_ratio=aspect_ratio,
@@ -368,6 +375,7 @@ async def async_optimize_base64(
     strip_metadata: bool = True,
     lossless: bool = False,
     auto_orient: bool = True,
+    keep_aspect_ratio: bool = True,
     fit: FitMode | str | None = None,
     anchor: Anchor | str = Anchor.CENTER,
     aspect_ratio: tuple[int, int] | str | None = None,
@@ -391,6 +399,7 @@ async def async_optimize_base64(
         strip_metadata=strip_metadata,
         lossless=lossless,
         auto_orient=auto_orient,
+        keep_aspect_ratio=keep_aspect_ratio,
         fit=fit,
         anchor=anchor,
         aspect_ratio=aspect_ratio,
@@ -411,8 +420,13 @@ def _build_batch_report(
 
     total_original = sum(r.original_size for r in results)
     total_optimized = sum(r.optimized_size for r in successful)
-    total_savings = total_original - total_optimized
-    savings_pct = (total_savings / total_original * 100.0) if total_original > 0 else 0.0
+    # Savings only count files that were actually optimized; counting failed
+    # sources in the baseline would inflate the reported savings.
+    total_savings = sum(r.savings_bytes for r in successful)
+    original_of_successful = sum(r.original_size for r in successful)
+    savings_pct = (
+        (total_savings / original_of_successful * 100.0) if original_of_successful > 0 else 0.0
+    )
 
     return BatchReport(
         total_files=total,

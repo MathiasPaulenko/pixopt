@@ -28,7 +28,10 @@ def discover_images(
     Skips files that resolve outside of the source directory (e.g. symlink
     escapes or path-traversal attempts).
     """
-    exts = set(extensions or DEFAULT_EXTENSIONS)
+    exts = {
+        e.strip().lower() if e.strip().startswith(".") else f".{e.strip().lower()}"
+        for e in (extensions or DEFAULT_EXTENSIONS)
+    }
     base = source_dir.resolve()
     pattern = "**/*" if recursive else "*"
     for file_path in source_dir.glob(pattern):

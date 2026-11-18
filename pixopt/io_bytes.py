@@ -10,6 +10,7 @@ from __future__ import annotations
 import base64 as _b64
 import binascii
 import io
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -17,6 +18,8 @@ from PIL import Image
 
 from pixopt._units import (
     MAX_BASE64_LENGTH,
+    MAX_GIF_FRAMES,
+    MAX_GIF_TOTAL_PIXELS,
     MAX_IMAGE_DIMENSION,
     MAX_INPUT_BYTES,
     WHITE,
@@ -183,7 +186,8 @@ def image_to_bytes(
         strip_metadata=strip_metadata,
         lossless=lossless,
     )
-    img = strip_metadata_pillow(img, fmt)
+    if strip_metadata:
+        img = strip_metadata_pillow(img, fmt)
     with io.BytesIO() as buf:
         img.save(buf, format=fmt, **save_kwargs)
         return buf.getvalue()
@@ -226,6 +230,12 @@ def image_to_base64(
     return _b64.b64encode(data).decode("ascii")
 
 
+def _decode_base64(b64_str: str) -> bytes:
+    """Decode a base64 string tolerating whitespace but rejecting garbage."""
+    cleaned = re.sub(r"\s+", "", b64_str)
+    return _b64.b64decode(cleaned, validate=True)
+
+
 def base64_to_image(b64_str: str) -> Image.Image:
     """Decode a base64-encoded string into a PIL Image.
 
@@ -243,8 +253,8 @@ def base64_to_image(b64_str: str) -> Image.Image:
     if len(b64_str) > MAX_BASE64_LENGTH:
         raise ValueError(f"Base64 string too large (max {MAX_BASE64_LENGTH} characters)")
     try:
-        data = _b64.b64decode(b64_str)
-    except binascii.Error as exc:
+        data = _decode_base64(b64_str)
+    except (binascii.Error, ValueError) as exc:
         raise ValueError(f"Invalid base64 input: {exc}") from exc
     if len(data) > MAX_INPUT_BYTES:
         raise ValueError(f"Decoded input too large (max {MAX_INPUT_BYTES} bytes)")
@@ -263,6 +273,7 @@ def optimize_bytes(
     strip_metadata: bool = True,
     lossless: bool = False,
     auto_orient: bool = True,
+    keep_aspect_ratio: bool = True,
     fit: FitMode | str | None = None,
     anchor: Anchor | str = Anchor.CENTER,
     aspect_ratio: tuple[int, int] | str | None = None,
@@ -281,6 +292,7 @@ def optimize_bytes(
         strip_metadata: Remove EXIF and other metadata.
         lossless: Use lossless compression for PNG/WEBP.
         auto_orient: Apply EXIF orientation before processing.
+        keep_aspect_ratio: Maintain aspect ratio when resizing (legacy when fit is None).
         fit: Resize fit mode: down, cover, contain, fill.
         anchor: Anchor point for cover/contain cropping.
         aspect_ratio: Target aspect ratio as '16:9' or (16, 9).
@@ -303,6 +315,16 @@ def optimize_bytes(
             output_format = OutputFormat(output_format)
     except ValueError as exc:
         return _bytes_error(str(exc), original_size=original_size)
+
+    from pixopt.optimizer import validate_optimize_params
+
+    if error := validate_optimize_params(
+        quality=quality,
+        max_width=max_width,
+        max_height=max_height,
+        min_size_bytes=None,
+    ):
+        return _bytes_error(error, original_size=original_size)
 
     try:
         if isinstance(fit, str) and fit:
@@ -331,6 +353,26 @@ def optimize_bytes(
 
             is_animated = getattr(image, "is_animated", False) or getattr(image, "n_frames", 1) > 1
 
+            if is_animated and pillow_fmt in ("WEBP", "GIF"):
+                animated_result = _optimize_animated_bytes(
+                    image,
+                    original_size,
+                    pillow_fmt,
+                    max_width=max_width,
+                    max_height=max_height,
+                    keep_aspect_ratio=keep_aspect_ratio,
+                    fit=fit,
+                    anchor=anchor,
+                    aspect_ratio=aspect_ratio,
+                    background_color=background_color,
+                    quality=quality,
+                    strip_metadata=strip_metadata,
+                    optimize=optimize,
+                    lossless=lossless,
+                )
+                if animated_result is not None:
+                    return animated_result
+
             if auto_orient and not is_animated:
                 image = apply_exif_orientation(image)
 
@@ -339,6 +381,7 @@ def optimize_bytes(
                 image,
                 max_width=max_width,
                 max_height=max_height,
+                keep_aspect_ratio=keep_aspect_ratio,
                 fit=fit,
                 anchor=anchor,
                 aspect_ratio=aspect_ratio,
@@ -374,7 +417,7 @@ def optimize_bytes(
                 savings_percent=savings_pct,
                 success=True,
             )
-    except (OSError, ValueError, Image.DecompressionBombError) as exc:
+    except (OSError, EOFError, ValueError, Image.DecompressionBombError) as exc:
         _logger.error("Optimization failed", extra={"operation": "optimize_bytes"})
         return _bytes_error(str(exc), original_size=original_size)
     except (KeyboardInterrupt, SystemExit):
@@ -393,6 +436,7 @@ def optimize_base64(
     strip_metadata: bool = True,
     lossless: bool = False,
     auto_orient: bool = True,
+    keep_aspect_ratio: bool = True,
     fit: FitMode | str | None = None,
     anchor: Anchor | str = Anchor.CENTER,
     aspect_ratio: tuple[int, int] | str | None = None,
@@ -407,8 +451,22 @@ def optimize_base64(
         A :class:`Base64Result` with base64 data and optimization metadata.
 
     """
+    if len(b64_str) > MAX_BASE64_LENGTH:
+        return Base64Result(
+            base64=None,
+            format="",
+            width=0,
+            height=0,
+            original_size=0,
+            optimized_size=0,
+            savings_bytes=0,
+            savings_percent=0.0,
+            success=False,
+            error=f"Base64 string too large (max {MAX_BASE64_LENGTH} characters)",
+        )
+
     try:
-        data = _b64.b64decode(b64_str)
+        data = _decode_base64(b64_str)
     except (ValueError, TypeError, binascii.Error) as exc:
         return Base64Result(
             base64=None,
@@ -434,6 +492,7 @@ def optimize_base64(
         strip_metadata=strip_metadata,
         lossless=lossless,
         auto_orient=auto_orient,
+        keep_aspect_ratio=keep_aspect_ratio,
         fit=fit,
         anchor=anchor,
         aspect_ratio=aspect_ratio,
@@ -451,6 +510,109 @@ def optimize_base64(
         savings_percent=result.savings_percent,
         success=result.success,
         error=result.error,
+    )
+
+
+def _optimize_animated_bytes(
+    image: Image.Image,
+    original_size: int,
+    pillow_fmt: str,
+    *,
+    max_width: int | None,
+    max_height: int | None,
+    keep_aspect_ratio: bool,
+    fit: FitMode | str | None,
+    anchor: Anchor | str,
+    aspect_ratio: tuple[int, int] | str | None,
+    background_color: tuple[int, int, int] | str,
+    quality: int,
+    strip_metadata: bool,
+    optimize: bool,
+    lossless: bool,
+) -> BytesResult | None:
+    """Encode an animated image frame-by-frame; None on failure (caller handles)."""
+    n_frames: int = getattr(image, "n_frames", 1)
+    if n_frames > MAX_GIF_FRAMES:
+        return _bytes_error(
+            f"Animated image has too many frames (max {MAX_GIF_FRAMES}), got {n_frames}",
+            original_size=original_size,
+        )
+
+    frames: list[Image.Image] = []
+    durations: list[int] = []
+    total_pixels = 0
+    try:
+        for frame_idx in range(n_frames):
+            image.seek(frame_idx)
+            durations.append(int(image.info.get("duration", 100)))
+            frame = image.copy()
+            frame = convert_mode(frame, pillow_fmt)
+            frame = resize_image(
+                frame,
+                max_width=max_width,
+                max_height=max_height,
+                keep_aspect_ratio=keep_aspect_ratio,
+                fit=fit,
+                anchor=anchor,
+                aspect_ratio=aspect_ratio,
+                background_color=background_color,
+            )
+            if strip_metadata:
+                frame = strip_metadata_pillow(frame, pillow_fmt)
+            frame_pixels = frame.width * frame.height
+            if total_pixels + frame_pixels > MAX_GIF_TOTAL_PIXELS:
+                frame.close()
+                raise ValueError(
+                    f"Animated image exceeds maximum total pixel budget "
+                    f"(max {MAX_GIF_TOTAL_PIXELS})"
+                )
+            total_pixels += frame_pixels
+            frames.append(frame)
+
+        save_kwargs = build_save_kwargs(
+            pillow_fmt,
+            quality=quality,
+            optimize=optimize,
+            strip_metadata=strip_metadata,
+            animated=True,
+            lossless=lossless,
+        )
+        if not frames:
+            return _bytes_error(
+                "Animated image produced no decodable frames",
+                original_size=original_size,
+            )
+
+        save_kwargs["duration"] = durations
+        save_kwargs["loop"] = int(image.info.get("loop", 0))
+
+        with io.BytesIO() as buf:
+            frames[0].save(
+                buf,
+                format=pillow_fmt,
+                append_images=frames[1:],
+                **save_kwargs,
+            )
+            optimized_data = buf.getvalue()
+    except (OSError, EOFError, ValueError) as exc:
+        return _bytes_error(str(exc), original_size=original_size)
+    finally:
+        for f in frames:
+            f.close()
+
+    optimized_size = len(optimized_data)
+    savings = original_size - optimized_size
+    savings_pct = (savings / original_size * 100.0) if original_size > 0 else 0.0
+    return BytesResult(
+        data=optimized_data,
+        format=pillow_fmt,
+        width=frames[0].width,
+        height=frames[0].height,
+        original_size=original_size,
+        optimized_size=optimized_size,
+        savings_bytes=savings,
+        savings_percent=savings_pct,
+        success=True,
     )
 
 

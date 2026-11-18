@@ -14,7 +14,7 @@ from typing import Any
 
 from PIL import Image
 
-from pixopt.image_ops import _open_image
+from pixopt.image_ops import _open_image, convert_mode
 from pixopt.logging import get_logger
 from pixopt.utils import validate_no_parent_references
 
@@ -235,7 +235,8 @@ def convert_to_nextgen(
 
     Args:
         source: Path to the source image.
-        output: Output path. Extension will be adjusted if fallback occurs.
+        output: Output path. Extension is adjusted to match the format
+            actually written.
         fmt: Target next-gen format (``"jxl"`` or ``"webp2"``).
         quality: Quality for lossy compression (1-100).
         fallback: If True, fall back to ``fallback_format`` when the
@@ -268,7 +269,6 @@ def convert_to_nextgen(
     output_path = Path(output)
     if error := validate_no_parent_references(output_path, "output"):
         raise ValueError(error)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
     supported = is_format_supported(fmt)
 
     if not supported:
@@ -305,14 +305,15 @@ def convert_to_nextgen(
         output_path = output_path.with_suffix(f".{fallback_format.lower()}")
     else:
         pillow_fmt = fmt.upper()
+        # Keep the file extension consistent with the format actually written.
+        output_path = output_path.with_suffix(f".{fmt}")
 
     try:
         image: Image.Image
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         with _open_image(source_path, label="source") as img:
             img.load()
-            image = img
-            if image.mode != "RGB":
-                image = image.convert("RGB")
+            image = convert_mode(img, pillow_fmt)
 
             save_kwargs: dict[str, Any] = {}
             if pillow_fmt in ("JPEG", "WEBP", "JXL"):

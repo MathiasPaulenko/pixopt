@@ -178,6 +178,14 @@ def benchmark_formats(
                 "PNG",
             ]
         )
+        if len(fmt_list) * len(q_levels) > 256:
+            raise ValueError(
+                "Too many benchmark variants "
+                f"({len(fmt_list)} formats x {len(q_levels)} qualities, max 256)"
+            )
+        for q in q_levels:
+            if not isinstance(q, int) or isinstance(q, bool) or not 1 <= q <= 100:
+                raise ValueError(f"Benchmark qualities must be integers in 1..100, got {q!r}")
 
         # Filter out AVIF if not available.
         if "AVIF" in fmt_list and not _check_avif():

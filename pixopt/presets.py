@@ -217,7 +217,7 @@ def _validate_preset_params(name: str, params: dict[str, Any]) -> None:
 
         if key in _PRESET_BOUNDS:
             lower, upper = _PRESET_BOUNDS[key]
-            if not isinstance(value, int):
+            if not isinstance(value, int) or isinstance(value, bool):
                 raise ValueError(
                     f"Preset '{name}' key '{key}' must be an integer, got {type(value).__name__}"
                 )

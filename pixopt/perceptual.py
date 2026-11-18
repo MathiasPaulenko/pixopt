@@ -325,6 +325,8 @@ def find_duplicates(
         that are within ``threshold`` of each other.
 
     """
+    if threshold < 0:
+        raise ValueError(f"threshold must be non-negative, got {threshold}")
     if not hashes:
         return []
 
@@ -412,6 +414,16 @@ def scan_duplicates(
         raise ValueError(error)
     if not dir_path.exists():
         raise FileNotFoundError(f"Directory not found: {dir_path}")
+    if not dir_path.is_dir():
+        raise NotADirectoryError(f"Not a directory: {dir_path}")
+
+    algorithm = algorithm.lower()
+    if algorithm not in ("phash", "dhash", "ahash"):
+        raise ValueError(
+            f"Unknown hash algorithm: {algorithm!r}. Use 'phash', 'dhash', or 'ahash'."
+        )
+    if threshold < 0:
+        raise ValueError(f"threshold must be non-negative, got {threshold}")
 
     _logger.debug(
         "Scanning for duplicates", extra={"operation": "duplicates", "path": str(dir_path)}

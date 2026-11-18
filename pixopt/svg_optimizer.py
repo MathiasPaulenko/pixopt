@@ -61,6 +61,13 @@ _ATTR_RE = re.compile(r"\s+([a-zA-Z_:][\w:.-]*)\s*=\s*(?:\"([^\"]*)\"|'([^']*)'|
 # Match a CDATA section so it can be protected while tags are processed.
 _CDATA_RE = re.compile(r"<!\[CDATA\[(.*?)\]\]>", re.DOTALL)
 
+# Match raw-text elements whose content may legitimately contain markup-like
+# text (CSS in <style>, JS in <script>); matched with their open/close tags.
+_RAW_TEXT_RE = re.compile(
+    r"<(script|style)(?:\s[^>]*)?>.*?</\1\s*>",
+    re.DOTALL | re.IGNORECASE,
+)
+
 
 def _round_decimals(value: str) -> str:
     """Round numeric values with 4+ decimal places to 3 places."""
@@ -140,27 +147,29 @@ def optimize_svg(data: str | bytes) -> str:
     # Remove XML declaration.
     data = re.sub(r"<\?xml[^?]*\?>", "", data)
 
-    # Remove DOCTYPE.
-    data = re.sub(r"<!DOCTYPE[^>]*>", "", data, flags=re.IGNORECASE)
+    # Remove DOCTYPE, including internal subsets: <!DOCTYPE svg [ ... ]>.
+    data = re.sub(r"<!DOCTYPE[^>\[]*(?:\[[^\]]*\])?[^>]*>", "", data, flags=re.IGNORECASE)
 
     # Remove HTML comments.
     data = re.sub(r"<!--.*?-->", "", data, flags=re.DOTALL)
 
-    # Protect CDATA sections so the tag processor does not touch their content.
-    cdata_blocks: list[str] = []
+    # Protect CDATA sections and raw-text elements (script/style) so the tag
+    # processor does not touch their content.
+    protected_blocks: list[str] = []
 
-    def _store_cdata(cdata_match: re.Match[str]) -> str:
-        placeholder = f"__CDATA_{len(cdata_blocks)}__"
-        cdata_blocks.append(cdata_match.group(0))
+    def _store_protected(protected_match: re.Match[str]) -> str:
+        placeholder = f"__PIXOPT_PROTECTED_{len(protected_blocks)}__"
+        protected_blocks.append(protected_match.group(0))
         return placeholder
 
-    data = _CDATA_RE.sub(_store_cdata, data)
+    data = _RAW_TEXT_RE.sub(_store_protected, data)
+    data = _CDATA_RE.sub(_store_protected, data)
 
     # Process individual tags.
     data = _TAG_RE.sub(_minify_tag, data)
 
-    # Restore CDATA sections.
-    for index, block in enumerate(cdata_blocks):
-        data = data.replace(f"__CDATA_{index}__", block, 1)
+    # Restore protected blocks.
+    for index, block in enumerate(protected_blocks):
+        data = data.replace(f"__PIXOPT_PROTECTED_{index}__", block, 1)
 
     return data.strip()

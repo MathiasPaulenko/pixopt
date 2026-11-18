@@ -129,6 +129,8 @@ def scan_directory(
         dir_path.stat()
     except FileNotFoundError as exc:
         raise FileNotFoundError(f"Directory not found: {dir_path}") from exc
+    if not dir_path.is_dir():
+        raise NotADirectoryError(f"Not a directory: {dir_path}")
 
     _logger.debug("Scanning directory", extra={"operation": "scan", "path": str(dir_path)})
 
@@ -165,7 +167,9 @@ def scan_directory(
                 mode = img.mode
                 width = img.width
                 height = img.height
-                has_alpha = "A" in mode or "transparency" in img.info
+                has_alpha = mode in ("RGBA", "LA", "PA", "RGBa", "La") or (
+                    "transparency" in img.info
+                )
                 is_animated = getattr(img, "is_animated", False)
                 frame_count = getattr(img, "n_frames", 1)
 

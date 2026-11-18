@@ -172,6 +172,9 @@ def generate_comparison_html(
     output_html = Path(output_html)
     if error := validate_no_parent_references(output_html, "output_html"):
         raise ValueError(error)
+    for path, label in ((before_path, "before_path"), (after_path, "after_path")):
+        if error := validate_no_parent_references(Path(path), label):
+            raise ValueError(error)
 
     before_b64 = _img_to_base64(before_path)
     after_b64 = _img_to_base64(after_path)
